@@ -4,8 +4,8 @@ from dash import html
 from dash.dependencies import Input, Output
 from flask import render_template
 
-from traitsgarden import app, server
-from traitsgarden.dashboards import app1, app2
+from traitsgarden.webapp import app, server
+from traitsgarden.webapp.dashboards import app1, app2
 # from traitsgarden.views import studies_blueprint
 
 ## Flask Pages ##
