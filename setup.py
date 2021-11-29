@@ -28,7 +28,7 @@ setup(
     python_requires='>=3.6, !=3.7.2',
     entry_points={
         'console_scripts': [
-            'traitsgarden_app = traitsgarden.wsgi:run',
+            'traitsgarden_app = traitsgarden.__main__:run',
         ]
     },
 )
