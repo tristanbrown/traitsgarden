@@ -28,7 +28,3 @@ def display_page(pathname):
         return app1.layout
     elif pathname == '/apps/app2':
         return app2.layout
-
-## Launch the App ##
-def launch(debug=False):
-    app.run_server(debug=debug, port=5000)

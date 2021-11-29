@@ -9,10 +9,10 @@ REQUIREMENTS = [
     'sqlalchemy',
     'alembic',
     'arrow',
-    'flask',
+    'flask>=2.0.2',
     'flask_wtf',
     'wtforms',
-    'dash',
+    'dash>=2.0.0',
 ]
 
 setup(
@@ -28,6 +28,7 @@ setup(
     python_requires='>=3.6, !=3.7.2',
     entry_points={
         'console_scripts': [
+            'traitsgarden_app = traitsgarden.wsgi:run',
         ]
     },
 )
