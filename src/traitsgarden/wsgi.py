@@ -1,9 +1,9 @@
 """Main module for running the Flask app."""
-from .index import launch
+from traitsgarden import index
 
 def run():
     """Main method to run the app."""
-    launch(debug=True)
+    index.launch(debug=True)
 
 if __name__ == "__main__":
     run()

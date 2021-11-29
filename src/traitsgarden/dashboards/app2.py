@@ -1,8 +1,8 @@
-import dash_core_components as dcc
-import dash_html_components as html
+from dash import dcc
+from dash import html
 from dash.dependencies import Input, Output
 
-from fintrist_app import app
+from traitsgarden import app
 
 layout = html.Div([
     html.H3('App 2'),
@@ -15,9 +15,8 @@ layout = html.Div([
         ]
     ),
     html.Div(id='app-2-display-value'),
+    html.A('Go Home', href='/home'),
     dcc.Link('Go to App 1', href='/apps/app1'),
-    html.A('Manage Studies', href='/studies/manage'),
-    html.A('Edit Studies', href='/studies/edit'),
 ])
 
 
