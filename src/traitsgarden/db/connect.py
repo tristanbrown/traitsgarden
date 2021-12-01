@@ -9,7 +9,7 @@ load_dotenv()
 
 LOCALTZ = os.getenv('TIMEZONE', 'US/Pacific')
 
-db_url = f"postgresql://postgres:{os.getenv('POSTGRES_PASSWORD')}@postgres/postgres"
+db_url = f"postgresql://postgres:{os.getenv('POSTGRES_PASSWORD')}@postgres/garden"
 sqlengine = create_engine(db_url)
 
 Session = sessionmaker(bind=sqlengine)
