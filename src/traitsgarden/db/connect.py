@@ -1,18 +1,38 @@
-"""Connection to Postgres"""
+"""
+MongoDB connection
+"""
 import os
-from dotenv import load_dotenv
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
+import mongoengine
+from mongoengine.connection import _get_db
+from traitsgarden.settings import DBConfig
 
-load_dotenv()
+TESTNAME = 'Garden_Test'
 
-LOCALTZ = os.getenv('TIMEZONE', 'US/Pacific')
+def connect_db():
+    mongoengine.disconnect()
+    db_name = os.environ.get('ALT_DB') or DBConfig.DATABASE_NAME
+    mongoclient = mongoengine.connect(
+        db_name,
+        host=DBConfig.DB_HOST,
+        port=DBConfig.DB_PORT,
+        username=DBConfig.USERNAME,
+        password=DBConfig.PASSWORD,
+        authentication_source='admin',
+    )
+    return mongoclient, mongoclient[db_name]
 
-db_url = f"postgresql://postgres:{os.getenv('POSTGRES_PASSWORD')}@postgres/garden"
-sqlengine = create_engine(db_url)
+def test_db(test=True):
+    """Toggle the test DB."""
+    if test:
+        os.environ['ALT_DB'] = TESTNAME
+    else:
+        os.environ.pop('ALT_DB', None)
+    mongoclient = connect_db()
+    print(f"Test DB: {test}")
+    return mongoclient
 
-Session = sessionmaker(bind=sqlengine)
-sqlsession = Session()
-
-Base = declarative_base(bind=sqlengine)
+def drop_test():
+    """Drop the test DB."""
+    mongoclient = _get_db().client
+    mongoclient.drop_database(TESTNAME)
+    print(f"{TESTNAME} dropped.")

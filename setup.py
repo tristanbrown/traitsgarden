@@ -5,9 +5,8 @@ import __about__
 REQUIREMENTS = [
     'python-dotenv',
     'pandas>=1.1.0',
-    'psycopg2',
-    'sqlalchemy',
-    'alembic',
+    'mongoengine',
+    'pdmongo',
     'arrow',
     'flask>=2.0.2',
     'flask_wtf',

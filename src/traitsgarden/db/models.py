@@ -3,44 +3,50 @@ import arrow
 import numpy as np
 import pandas as pd
 
-from sqlalchemy import Column, asc, desc, Computed
-from sqlalchemy.types import Integer, TIMESTAMP, Numeric, String, Date
+from mongoengine.document import Document, EmbeddedDocument
+from mongoengine.fields import (
+    DateField, DictField, EmbeddedDocumentField,
+    EmbeddedDocumentListField, IntField, FileField,
+    ListField, MapField, ReferenceField, StringField,
+    BooleanField, BinaryField, GridFSProxy,
+)
+from pymongo.errors import InvalidDocument
+from mongoengine import signals
+from bson.dbref import DBRef
 
-from .connect import Base, LOCALTZ
+class Plant(Document):
 
-class Plant(Base):
-    # __tablename__ = 'plant'  ## Only necessary if different from class name
+    name = StringField(max_length=120, required=True)
+    species = StringField(max_length=120, required=True)
+    fromseeds = ReferenceField('Seeds', required=True)
+    individual = StringField(max_length=2, required=True)
+    year = StringField(max_length=4)
+    start_date = DateField()
 
-    record = Column(Integer, primary_key=True)
-    name = Column(String(length=120), nullable=False)
-    species = Column(String(length=120), nullable=False)
-    seed = Column(String(length=4), nullable=False)
-    individual = Column(String(length=2), nullable=False)
-    year = Column(String(length=4), nullable=True)
-    start_date = Column(Date, nullable=True)
-
-    # __table_args__ = {'schema': 'garden'}  ## Only necessary with higher-level organization
+    meta = {
+        'strict': False,
+        'allow_inheritance': True,
+        }
 
     def __repr__(self):
         return f"<{self.name} - {self.species} - {self.plant_id}>"
 
     @property
     def plant_id(self):
-        return f"{self.seed}{self.individual.zfill(2)}"
+        return f"{self.fromseeds.seeds_id}{self.individual.zfill(2)}"
 
-class Seed(Base):
+class Seeds(Document):
 
-    record = Column(Integer, primary_key=True)
-    name = Column(String(length=120), nullable=False)
-    species = Column(String(length=120), nullable=False)
-    source = Column(String(length=120), nullable=True)
-    parent = Column(String(length=10), nullable=True)
-    variant = Column(String(length=2), nullable=True)
-    year = Column(String(length=4), nullable=True)
+    name = StringField(max_length=120, required=True)
+    species = StringField(max_length=120, required=True)
+    source = StringField(max_length=120)
+    parent = ListField(ReferenceField('Plant'))
+    variant = StringField(max_length=2, required=True)
+    year = StringField(max_length=4)
 
     def __repr__(self):
-        return f"<{self.name} - {self.species} - {self.seed_id}>"
+        return f"<{self.name} - {self.species} - {self.seeds_id}>"
 
     @property
-    def seed_id(self):
-        return f"{self.year[-2:]}{variant}"
+    def seeds_id(self):
+        return f"{self.year[-2:]}{self.variant}"
