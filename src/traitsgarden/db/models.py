@@ -8,7 +8,7 @@ from mongoengine.fields import (
     DateField, DictField, EmbeddedDocumentField,
     EmbeddedDocumentListField, IntField, FileField,
     ListField, MapField, ReferenceField, StringField,
-    BooleanField, BinaryField, GridFSProxy,
+    BooleanField, BinaryField, DecimalField, GridFSProxy,
 )
 from pymongo.errors import InvalidDocument
 from mongoengine import signals
@@ -38,11 +38,17 @@ class Plant(Document):
 class Seeds(Document):
 
     name = StringField(max_length=120, required=True)
-    species = StringField(max_length=120, required=True)
+    category = StringField(max_length=120, required=True)
+    species = StringField(max_length=120)
     source = StringField(max_length=120)
     parent = ListField(ReferenceField('Plant'))
     variant = StringField(max_length=2, required=True)
     year = StringField(max_length=4)
+    last_count = IntField()
+    generation = StringField(max_length=2, default='1')
+    germination = DecimalField()
+    parent_description = StringField()
+    tags = ListField(StringField())
 
     def __repr__(self):
         return f"<{self.name} - {self.species} - {self.seeds_id}>"
