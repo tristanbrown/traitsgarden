@@ -31,6 +31,9 @@ class Plant(Document):
     def __repr__(self):
         return f"<{self.name} - {self.species} - {self.plant_id}>"
 
+    def clean(self):
+        self.year = str(self.year)
+
     @property
     def plant_id(self):
         return f"{self.fromseeds.seeds_id}{self.individual.zfill(2)}"
@@ -50,8 +53,18 @@ class Seeds(Document):
     parent_description = StringField()
     tags = ListField(StringField())
 
-    def __repr__(self):
-        return f"<{self.name} - {self.species} - {self.seeds_id}>"
+    def __repr__(self, recursion=False):
+        try:
+            return f"<{self.name} - {self.category} - {self.seeds_id}>"
+        except:
+            if recursion:
+                raise
+            self.clean()
+            return self.__repr__(recursion=True)
+
+    def clean(self):
+        self.year = str(self.year)
+        self.generation = str(self.generation)
 
     @property
     def seeds_id(self):
