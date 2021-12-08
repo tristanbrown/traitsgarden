@@ -14,6 +14,8 @@ from pymongo.errors import InvalidDocument
 from mongoengine import signals
 from bson.dbref import DBRef
 
+from traitsgarden.db.query import get_existing
+
 class Plant(Document):
 
     name = StringField(max_length=120, required=True)
@@ -53,6 +55,15 @@ class Seeds(Document):
     parent_description = StringField()
     tags = ListField(StringField())
 
+    meta = {
+        'indexes': [
+            {
+                'fields': ('name', 'category', 'year', 'variant'),
+                'unique': True
+            }
+        ]
+    }
+
     def __repr__(self, recursion=False):
         try:
             return f"<{self.name} - {self.category} - {self.seeds_id}>"
@@ -69,3 +80,9 @@ class Seeds(Document):
     @property
     def seeds_id(self):
         return f"{self.year[-2:]}{self.variant}"
+
+    @property
+    def db_obj(self):
+        existing = get_existing(self, ['name', 'category', 'year', 'variant'])
+        if existing:
+            return existing.get()
