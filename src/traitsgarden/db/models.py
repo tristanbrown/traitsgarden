@@ -19,19 +19,25 @@ from traitsgarden.db.query import get_existing
 class Plant(Document):
 
     name = StringField(max_length=120, required=True)
-    species = StringField(max_length=120, required=True)
+    category = StringField(max_length=120, required=True)
+    species = StringField(max_length=120)
     fromseeds = ReferenceField('Seeds', required=True)
     individual = StringField(max_length=2, required=True)
     year = StringField(max_length=4)
     start_date = DateField()
+    done = BooleanField(default=False)
 
     meta = {
-        'strict': False,
-        'allow_inheritance': True,
-        }
+        'indexes': [
+            {
+                'fields': ('fromseeds', 'individual'),
+                'unique': True
+            }
+        ]
+    }
 
     def __repr__(self):
-        return f"<{self.name} - {self.species} - {self.plant_id}>"
+        return f"<{self.name} - {self.category} - {self.plant_id}>"
 
     def clean(self):
         self.year = str(self.year)
