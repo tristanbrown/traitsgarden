@@ -1,11 +1,6 @@
 """Data Entry into MongoDB"""
 
-from pymongo import UpdateOne
-# from pymongo.errors import DuplicateKeyError
-from mongoengine import Document, ValidationError, NotUniqueError
-from bson.objectid import ObjectId
-
-from traitsgarden.db.query import get_existing
+from mongoengine import NotUniqueError
 
 def docs_from_df(df, model):
     """Load a list of documents from a table."""
@@ -29,29 +24,3 @@ def upsert(entity):
         existobj.update(**kwargs)
         existobj.save()
         return existobj
-
-# def bulk_upsert(entities):
-#     #TODO: DOESN'T VALIDATE PROPERLY
-#     """Create or update multiple mongoengine entities"""
-#     bulk_operations = []
-#     if not isinstance(entities, list):
-#         entities = [entities]
-#     model = entities[0].__class__
-#     for entity in entities:
-#         try:
-#             entity.clean()
-#             entity.validate()
-#             if entity.id is None:
-#                 entity.id = ObjectId()
-#             bulk_operations.append(
-#                 UpdateOne(
-#                     {'_id': entity.id},
-#                     {'$set': entity.to_mongo().to_dict()},
-#                     upsert=True))
-
-#         except ValidationError:
-#             pass
-
-#     if bulk_operations:
-#         collection = model._get_collection() \
-#             .bulk_write(bulk_operations, ordered=False)
