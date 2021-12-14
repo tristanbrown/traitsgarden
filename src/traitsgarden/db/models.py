@@ -9,8 +9,10 @@ from mongoengine.fields import (
     EmbeddedDocumentListField, IntField, FileField,
     ListField, MapField, ReferenceField, StringField,
     BooleanField, BinaryField, DecimalField, GridFSProxy,
+    FloatField,
 )
 from pymongo.errors import InvalidDocument
+from mongoengine.errors import DoesNotExist
 from mongoengine import signals
 from bson.dbref import DBRef
 
@@ -21,30 +23,83 @@ class Plant(Document):
     name = StringField(max_length=120, required=True)
     category = StringField(max_length=120, required=True)
     species = StringField(max_length=120)
-    fromseeds = ReferenceField('Seeds', required=True)
-    individual = StringField(max_length=2, required=True)
+    parent_seeds = ReferenceField('Seeds', required=True)
+    _parent_id = StringField(max_length=4)
+    individual = StringField(max_length=2, required=True, default='1')
     year = StringField(max_length=4)
     start_date = DateField()
+    germ_date = DateField()
+    flower_date = DateField()
+    fruit_date = DateField()
+    conditions = StringField()
+    growth = StringField()
+    size = FloatField()
+    fruit_yield = StringField(max_length=120)
+    fruit_desc = StringField()
+    flavor = StringField()
+    variant_notes = StringField()
+    tags = ListField(StringField())
+
     done = BooleanField(default=False)
 
     meta = {
         'indexes': [
             {
-                'fields': ('fromseeds', 'individual'),
+                'fields': ('parent_seeds', 'individual'),
                 'unique': True
             }
         ]
     }
 
-    def __repr__(self):
-        return f"<{self.name} - {self.category} - {self.plant_id}>"
+    def __repr__(self, recursion=False):
+        try:
+            return f"<{self.name} - {self.category} - {self.plant_id}>"
+        except:
+            if recursion:
+                raise
+            self.clean()
+            return self.__repr__(recursion=True)
 
     def clean(self):
         self.year = str(self.year)
+        self.individual = str(self.individual)
+        try:
+            self.parent_seeds = self.get_parent_seeds(self._parent_id)
+            del self._parent_id
+        except DoesNotExist:
+            self.parent_seeds = self.create_parent(self._parent_id)
+            del self._parent_id
+        except AttributeError:
+            pass
 
     @property
     def plant_id(self):
-        return f"{self.fromseeds.seeds_id}{self.individual.zfill(2)}"
+        return f"{self.parent_seeds.seeds_id}{self.individual.zfill(2)}"
+
+    def get_parent_seeds(self, seeds_id):
+        """"""
+        year = f"20{seeds_id[:2]}"
+        variant = seeds_id[2:]
+        parent = Seeds.objects(
+            name=self.name,
+            category=self.category,
+            year=year,
+            variant=variant,
+        )
+        return parent.get()
+
+    def create_parent(self, seeds_id):
+        """"""
+        year = f"20{seeds_id[:2]}"
+        variant = seeds_id[2:]
+        new_seeds = Seeds(
+            name=self.name,
+            category=self.category,
+            year=year,
+            variant=variant,
+        )
+        new_seeds.save()
+        return new_seeds
 
 class Seeds(Document):
 
