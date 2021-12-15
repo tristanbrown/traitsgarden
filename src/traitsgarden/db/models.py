@@ -33,7 +33,7 @@ class Plant(Document):
     fruit_date = DateField()
     conditions = StringField()
     growth = StringField()
-    size = FloatField()
+    size = FloatField()  ## In inches
     fruit_yield = StringField(max_length=120)
     fruit_desc = StringField()
     flavor = StringField()
@@ -69,7 +69,7 @@ class Plant(Document):
         except DoesNotExist:
             self.parent_seeds = self.create_parent(self._parent_id)
             del self._parent_id
-        except AttributeError:
+        except (AttributeError, TypeError):
             pass
 
     @property
@@ -100,6 +100,12 @@ class Plant(Document):
         )
         new_seeds.save()
         return new_seeds
+
+    @property
+    def db_obj(self):
+        existing = get_existing(self, ['parent_seeds', 'individual'])
+        if existing:
+            return existing.get()
 
 class Seeds(Document):
 
