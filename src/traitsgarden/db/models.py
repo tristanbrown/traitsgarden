@@ -17,6 +17,7 @@ from mongoengine import signals
 from bson.dbref import DBRef
 
 from traitsgarden.db.query import get_existing
+from traitsgarden.db import util
 
 class Plant(Document):
 
@@ -71,6 +72,8 @@ class Plant(Document):
             del self._parent_id
         except (AttributeError, TypeError):
             pass
+        if isinstance(self.size, str):
+            self.size = util.convert_to_inches(self.size)
 
     @property
     def plant_id(self):
