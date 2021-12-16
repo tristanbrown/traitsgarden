@@ -4,7 +4,7 @@ from mongoengine import NotUniqueError
 
 def docs_from_df(df, model):
     """Load a list of documents from a table."""
-    return [model.from_json(row.to_json()) for _,row in df.iterrows()]
+    return [model.from_json(row.to_json(date_format='iso')) for _,row in df.iterrows()]
 
 def upsert(entity):
     """Create or update a mongoengine entity, matching on keyfields.
