@@ -34,7 +34,7 @@ class Plant(Document):
     fruit_date = DateField()
     conditions = StringField()
     growth = StringField()
-    size = FloatField()  ## In inches
+    height = FloatField()  ## In inches
     fruit_yield = StringField(max_length=120)
     fruit_desc = StringField()
     flavor = StringField()
@@ -72,8 +72,8 @@ class Plant(Document):
             del self._parent_id
         except (AttributeError, TypeError):
             pass
-        if isinstance(self.size, str):
-            self.size = util.convert_to_inches(self.size)
+        if isinstance(self.height, str):
+            self.height = util.convert_to_inches(self.height)
 
     @property
     def plant_id(self):
