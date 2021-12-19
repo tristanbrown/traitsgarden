@@ -11,16 +11,17 @@ def upsert(entity):
     """
     try:
         entity.save()
+        entity.reload()
         return entity
     except NotUniqueError:
-        entity.clean()
-        entity.validate()
         existobj = entity.db_obj
         kwargs = entity.to_mongo().to_dict()
         try:
             del kwargs['_id']
         except KeyError:
             pass
-        existobj.update(**kwargs)
+        for k, v in kwargs.items():
+            setattr(existobj, k, v)
         existobj.save()
+        existobj.reload()
         return existobj
