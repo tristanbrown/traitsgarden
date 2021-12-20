@@ -25,8 +25,8 @@ class Plant(Document):
     category = StringField(max_length=120, required=True)
     species = StringField(max_length=120)
     parent_id = StringField(max_length=4, required=True)
-    individual = StringField(max_length=2, required=True, default='1')
-    year = StringField(max_length=4)
+    individual = IntField(required=True, default=1)
+    year = IntField()
     start_date = DateField()
     germ_date = DateField()
     flower_date = DateField()
@@ -61,14 +61,19 @@ class Plant(Document):
             return self.__repr__(recursion=True)
 
     def clean(self):
-        self.year = str(self.year)
-        self.individual = str(self.individual)
+        try:
+            indiv_id = ord(self.individual) - 96
+            print(indiv_id)
+            if (indiv_id >= 1) and (indiv_id <= 26):
+                self.individual = indiv_id
+        except TypeError:
+            pass
         if isinstance(self.height, str):
             self.height = util.convert_to_inches(self.height)
 
     @property
     def plant_id(self):
-        return f"{self.parent_id}{self.individual.zfill(2)}"
+        return f"{self.parent_id}{str(self.individual).zfill(2)}"
 
     @property
     def parent_seeds(self):
@@ -97,7 +102,7 @@ class Seeds(Document):
     source = StringField(max_length=120)
     parent_plants = ListField(LazyReferenceField('Plant'))
     variant = StringField(max_length=2, required=True)
-    year = StringField(max_length=4)
+    year = IntField(required=True)
     last_count = IntField()
     generation = StringField(max_length=2, default='1')
     germination = DecimalField()
@@ -123,12 +128,11 @@ class Seeds(Document):
             return self.__repr__(recursion=True)
 
     def clean(self):
-        self.year = str(self.year)
         self.generation = str(self.generation)
 
     @property
     def seeds_id(self):
-        return f"{self.year[-2:]}{self.variant}"
+        return f"{str(self.year)[-2:]}{self.variant}"
 
     @staticmethod
     def parse_id(seeds_id):
