@@ -6,8 +6,10 @@ def docs_from_df(df, model):
     """Load a list of documents from a table."""
     return [model.from_json(row.to_json(date_format='iso')) for _,row in df.iterrows()]
 
-def upsert(entity):
+def upsert(entity, del_vals=False):
     """Create or update a mongoengine entity, matching on keyfields.
+
+    Set 'del_vals' to True to also sync null values.
     """
     try:
         entity.save()
@@ -15,13 +17,19 @@ def upsert(entity):
         return entity
     except NotUniqueError:
         existobj = entity.db_obj
-        kwargs = entity.to_mongo().to_dict()
+        newvals = entity.to_mongo().to_dict()
         try:
-            del kwargs['_id']
+            del newvals['_id']
         except KeyError:
             pass
-        for k, v in kwargs.items():
+        for k, v in newvals.items():
             setattr(existobj, k, v)
+        if del_vals:
+            existvals = existobj.to_mongo().to_dict()
+            del existvals['_id']
+            missing_fields = set(existvals.keys()) - set(newvals.keys())
+            for field in missing_fields:
+                delattr(existobj, field)
         existobj.save()
         existobj.reload()
         return existobj
