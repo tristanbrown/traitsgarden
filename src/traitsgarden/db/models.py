@@ -81,25 +81,19 @@ class Plant(Document):
 
     def get_parent_seeds(self, seeds_id):
         """"""
-        year = f"20{seeds_id[:2]}"
-        variant = seeds_id[2:]
         parent = Seeds.objects(
             name=self.name,
             category=self.category,
-            year=year,
-            variant=variant,
+            **Seeds.parse_id(seeds_id)
         )
         return parent.get()
 
     def create_parent(self, seeds_id):
         """"""
-        year = f"20{seeds_id[:2]}"
-        variant = seeds_id[2:]
         new_seeds = Seeds(
             name=self.name,
             category=self.category,
-            year=year,
-            variant=variant,
+            **Seeds.parse_id(seeds_id)
         )
         new_seeds.save()
         return new_seeds
@@ -150,6 +144,12 @@ class Seeds(Document):
     @property
     def seeds_id(self):
         return f"{self.year[-2:]}{self.variant}"
+
+    @staticmethod
+    def parse_id(seeds_id):
+        year = f"20{seeds_id[:2]}"
+        variant = seeds_id[2:]
+        return {'year': year, 'variant': variant}
 
     @property
     def db_obj(self):
