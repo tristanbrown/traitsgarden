@@ -1,6 +1,6 @@
 """Data Entry into MongoDB"""
 
-from mongoengine import NotUniqueError
+from mongoengine import NotUniqueError, ValidationError
 
 def docs_from_df(df, model):
     """Load a list of documents from a table."""
@@ -33,3 +33,6 @@ def upsert(entity, del_vals=False):
         existobj.save()
         existobj.reload()
         return existobj
+    except ValidationError:
+        print(entity.to_mongo().to_dict())
+        raise
