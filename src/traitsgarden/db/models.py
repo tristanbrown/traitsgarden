@@ -7,7 +7,7 @@ from mongoengine.document import Document, EmbeddedDocument
 from mongoengine.fields import (
     DateField, DictField, EmbeddedDocumentField,
     EmbeddedDocumentListField, IntField, FileField,
-    ListField, MapField, ReferenceField, StringField,
+    ListField, MapField, LazyReferenceField, StringField,
     BooleanField, BinaryField, DecimalField, GridFSProxy,
     FloatField,
 )
@@ -24,8 +24,7 @@ class Plant(Document):
     name = StringField(max_length=120, required=True)
     category = StringField(max_length=120, required=True)
     species = StringField(max_length=120)
-    parent_seeds = ReferenceField('Seeds', required=True)
-    _parent_id = StringField(max_length=4)
+    parent_id = StringField(max_length=4, required=True)
     individual = StringField(max_length=2, required=True, default='1')
     year = StringField(max_length=4)
     start_date = DateField()
@@ -46,7 +45,7 @@ class Plant(Document):
     meta = {
         'indexes': [
             {
-                'fields': ('parent_seeds', 'individual'),
+                'fields': ('name', 'category', 'parent_id', 'individual'),
                 'unique': True
             }
         ]
@@ -64,43 +63,29 @@ class Plant(Document):
     def clean(self):
         self.year = str(self.year)
         self.individual = str(self.individual)
-        try:
-            self.parent_seeds = self.get_parent_seeds(self._parent_id)
-            del self._parent_id
-        except DoesNotExist:
-            self.parent_seeds = self.create_parent(self._parent_id)
-            del self._parent_id
-        except (AttributeError, TypeError):
-            pass
         if isinstance(self.height, str):
             self.height = util.convert_to_inches(self.height)
 
     @property
     def plant_id(self):
-        return f"{self.parent_seeds.seeds_id}{self.individual.zfill(2)}"
+        return f"{self.parent_id}{self.individual.zfill(2)}"
 
-    def get_parent_seeds(self, seeds_id):
+    @property
+    def parent_seeds(self):
         """"""
         parent = Seeds.objects(
             name=self.name,
             category=self.category,
-            **Seeds.parse_id(seeds_id)
+            **Seeds.parse_id(self.parent_id)
         )
-        return parent.get()
-
-    def create_parent(self, seeds_id):
-        """"""
-        new_seeds = Seeds(
-            name=self.name,
-            category=self.category,
-            **Seeds.parse_id(seeds_id)
-        )
-        new_seeds.save()
-        return new_seeds
+        try:
+            return parent.get()
+        except DoesNotExist:
+            return
 
     @property
     def db_obj(self):
-        existing = get_existing(self, ['parent_seeds', 'individual'])
+        existing = get_existing(self, ['name', 'category', 'parent_id', 'individual'])
         if existing:
             return existing.get()
 
@@ -110,7 +95,7 @@ class Seeds(Document):
     category = StringField(max_length=120, required=True)
     species = StringField(max_length=120)
     source = StringField(max_length=120)
-    parent = ListField(ReferenceField('Plant'))
+    parent_plants = ListField(LazyReferenceField('Plant'))
     variant = StringField(max_length=2, required=True)
     year = StringField(max_length=4)
     last_count = IntField()
