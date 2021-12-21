@@ -3,53 +3,42 @@ import arrow
 import numpy as np
 import pandas as pd
 
-from mongoengine.document import Document, EmbeddedDocument
-from mongoengine.fields import (
-    DateField, DictField, EmbeddedDocumentField,
-    EmbeddedDocumentListField, IntField, FileField,
-    ListField, MapField, LazyReferenceField, StringField,
-    BooleanField, BinaryField, DecimalField, GridFSProxy,
-    FloatField,
+from sqlalchemy import Column, asc, desc, Computed, UniqueConstraint
+from sqlalchemy.types import (Integer, TIMESTAMP, Numeric, String, Date,
+    Boolean
 )
-from pymongo.errors import InvalidDocument
-from mongoengine.errors import DoesNotExist
-from mongoengine import signals
-from bson.dbref import DBRef
+from sqlalchemy.orm import validates
 
+from traitsgarden.db.connect import Base
 from traitsgarden.db.query import get_existing
 from traitsgarden.db import util
 
-class Plant(Document):
+class Plant(Base):
+    __tablename__ = 'plant'
 
-    name = StringField(max_length=120, required=True)
-    category = StringField(max_length=120, required=True)
-    species = StringField(max_length=120)
-    parent_id = StringField(max_length=4, required=True)
-    individual = IntField(required=True, default=1)
-    year = IntField()
-    start_date = DateField()
-    germ_date = DateField()
-    flower_date = DateField()
-    fruit_date = DateField()
-    conditions = StringField()
-    growth = StringField()
-    height = FloatField()  ## In inches
-    fruit_yield = StringField(max_length=120)
-    fruit_desc = StringField()
-    flavor = StringField()
-    variant_notes = StringField()
-    tags = ListField(StringField())
+    id = Column(Integer, primary_key=True)
+    name = Column(String(length=120), nullable=False)
+    category = Column(String(length=120), nullable=False)
+    species = Column(String(length=120))
+    parent_id = Column(String(length=4), nullable=False)
+    individual = Column(Integer(), nullable=False, default=1)
+    year = Column(Integer())
+    start_date = Column(Date())
+    germ_date = Column(Date())
+    flower_date = Column(Date())
+    fruit_date = Column(Date())
+    conditions = Column(String())
+    growth = Column(String())
+    height = Column(Numeric())  ## In inches
+    fruit_yield = Column(String(length=120))
+    fruit_desc = Column(String())
+    flavor = Column(String())
+    variant_notes = Column(String())
+    done = Column(Boolean(), default=False)
 
-    done = BooleanField(default=False)
-
-    meta = {
-        'indexes': [
-            {
-                'fields': ('name', 'category', 'parent_id', 'individual'),
-                'unique': True
-            }
-        ]
-    }
+    __table_args__ = (
+        UniqueConstraint('name', 'category', 'parent_id', 'individual', name='_plant_id_uc'),
+                     )
 
     def __repr__(self, recursion=False):
         try:
@@ -60,16 +49,21 @@ class Plant(Document):
             self.clean()
             return self.__repr__(recursion=True)
 
-    def clean(self):
+    @validates('height')
+    def validate_height(self, key, height):
+        if isinstance(height, str):
+            return util.convert_to_inches(height)
+        return height
+
+    @validates('individual')
+    def validate_individual(self, key, individual):
         try:
-            indiv_id = ord(self.individual) - 96
-            print(indiv_id)
+            indiv_id = ord(individual) - 96
             if (indiv_id >= 1) and (indiv_id <= 26):
-                self.individual = indiv_id
+                return indiv_id
         except TypeError:
             pass
-        if isinstance(self.height, str):
-            self.height = util.convert_to_inches(self.height)
+        return individual
 
     @property
     def plant_id(self):
@@ -94,29 +88,25 @@ class Plant(Document):
         if existing:
             return existing.get()
 
-class Seeds(Document):
+class Seeds(Base):
+    __tablename__ = 'seeds'
 
-    name = StringField(max_length=120, required=True)
-    category = StringField(max_length=120, required=True)
-    species = StringField(max_length=120)
-    source = StringField(max_length=120)
-    parent_plants = ListField(LazyReferenceField('Plant'))
-    variant = StringField(max_length=2, required=True)
-    year = IntField(required=True)
-    last_count = IntField()
-    generation = StringField(max_length=2, default='1')
-    germination = DecimalField()
-    parent_description = StringField()
-    tags = ListField(StringField())
+    id = Column(Integer, primary_key=True)
+    name = Column(String(length=120), nullable=False)
+    category = Column(String(length=120), nullable=False)
+    species = Column(String(length=120))
+    source = Column(String(length=120))
+    # parent_plants = ListField(LazyReferenceField('Plant'))
+    variant = Column(String(length=2), nullable=False)
+    year = Column(Integer(), nullable=False)
+    last_count = Column(Integer())
+    generation = Column(String(length=2), default='1')
+    germination = Column(Numeric(2, 2))
+    parent_description = Column(String())
 
-    meta = {
-        'indexes': [
-            {
-                'fields': ('name', 'category', 'year', 'variant'),
-                'unique': True
-            }
-        ]
-    }
+    __table_args__ = (
+        UniqueConstraint('name', 'category', 'year', 'variant', name='_seeds_id_uc'),
+                     )
 
     def __repr__(self, recursion=False):
         try:
@@ -129,6 +119,10 @@ class Seeds(Document):
 
     def clean(self):
         self.generation = str(self.generation)
+
+    @validates('generation')
+    def validate_generation(self, key, generation):
+        return str(generation)
 
     @property
     def seeds_id(self):
@@ -145,3 +139,11 @@ class Seeds(Document):
         existing = get_existing(self, ['name', 'category', 'year', 'variant'])
         if existing:
             return existing.get()
+
+def create_all():
+    Base.metadata.create_all()
+    print("Created all tables.")
+
+def drop_all():
+    Base.metadata.drop_all()
+    print("Dropped all tables.")

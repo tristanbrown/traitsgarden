@@ -2,8 +2,6 @@
 
 import pdmongo as pdm
 
-from traitsgarden.db import db
-
 def query_as_df(collection, queryargs=None):
     """Query the collection as a dataframe.
 
