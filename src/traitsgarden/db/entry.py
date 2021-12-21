@@ -1,9 +1,11 @@
 """Data Entry into Postgresql"""
+import numpy as np
 
 from traitsgarden.db.connect import sqlsession
 
 def obj_from_df(df, model):
     """Load a list of documents from a table."""
+    df = df.replace({np.NaN: None})
     records = df.to_dict(orient='records')
     return [model(**row) for row in records]
 

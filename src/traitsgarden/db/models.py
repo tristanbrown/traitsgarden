@@ -63,31 +63,7 @@ class Plant(Base):
                 return int(indiv_id)
         except TypeError:
             pass
-        try:
-            return int(individual)
-        except ValueError:
-            return
-
-    @validates('year')
-    def validate_ints(self, key, value):
-        try:
-            return int(value)
-        except:
-            return
-
-    @validates('done')
-    def validate_bool(self, key, value):
-        if value is True:
-            return value
-        else:
-            return False
-
-    @validates('start_date', 'germ_date', 'flower_date', 'fruit_date')
-    def validate_dates(self, key, value):
-        if pd.isnull(value):
-            return
-        else:
-            return value
+        return individual
 
     @property
     def plant_id(self):
@@ -140,17 +116,6 @@ class Seeds(Base):
                 raise
             self.clean()
             return self.__repr__(recursion=True)
-
-    @validates('generation')
-    def validate_generation(self, key, generation):
-        return str(generation)
-
-    @validates('year', 'last_count')
-    def validate_ints(self, key, value):
-        try:
-            return int(value)
-        except:
-            return
 
     @property
     def seeds_id(self):
