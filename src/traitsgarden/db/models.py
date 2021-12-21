@@ -9,7 +9,7 @@ from sqlalchemy.types import (Integer, TIMESTAMP, Numeric, String, Date,
 )
 from sqlalchemy.orm import validates
 
-from traitsgarden.db.connect import Base
+from traitsgarden.db.connect import Base, sqlsession
 from traitsgarden.db.query import get_existing
 from traitsgarden.db import util
 
@@ -60,10 +60,34 @@ class Plant(Base):
         try:
             indiv_id = ord(individual) - 96
             if (indiv_id >= 1) and (indiv_id <= 26):
-                return indiv_id
+                return int(indiv_id)
         except TypeError:
             pass
-        return individual
+        try:
+            return int(individual)
+        except ValueError:
+            return
+
+    @validates('year')
+    def validate_ints(self, key, value):
+        try:
+            return int(value)
+        except:
+            return
+
+    @validates('done')
+    def validate_bool(self, key, value):
+        if value is True:
+            return value
+        else:
+            return False
+
+    @validates('start_date', 'germ_date', 'flower_date', 'fruit_date')
+    def validate_dates(self, key, value):
+        if pd.isnull(value):
+            return
+        else:
+            return value
 
     @property
     def plant_id(self):
@@ -117,12 +141,16 @@ class Seeds(Base):
             self.clean()
             return self.__repr__(recursion=True)
 
-    def clean(self):
-        self.generation = str(self.generation)
-
     @validates('generation')
     def validate_generation(self, key, generation):
         return str(generation)
+
+    @validates('year', 'last_count')
+    def validate_ints(self, key, value):
+        try:
+            return int(value)
+        except:
+            return
 
     @property
     def seeds_id(self):
@@ -145,5 +173,6 @@ def create_all():
     print("Created all tables.")
 
 def drop_all():
+    sqlsession.close_all()
     Base.metadata.drop_all()
     print("Dropped all tables.")

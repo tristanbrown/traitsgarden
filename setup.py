@@ -6,7 +6,7 @@ REQUIREMENTS = [
     'python-dotenv',
     'pandas>=1.1.0',
     'psycopg2',
-    'sqlalchemy',
+    'sqlalchemy>=1.4.0',
     'alembic',
     'arrow',
     'flask>=2.0.2',

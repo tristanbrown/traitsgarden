@@ -1,10 +1,16 @@
-"""Data Entry into MongoDB"""
+"""Data Entry into Postgresql"""
 
-from mongoengine import NotUniqueError, ValidationError
+from traitsgarden.db.connect import sqlsession
 
-def docs_from_df(df, model):
+def obj_from_df(df, model):
     """Load a list of documents from a table."""
-    return [model.from_json(row.to_json(date_format='iso')) for _,row in df.iterrows()]
+    records = df.to_dict(orient='records')
+    return [model(**row) for row in records]
+
+def bulk_insert(entities):
+    """Add all of the ORM objects to the database."""
+    sqlsession.add_all(entities)
+    sqlsession.commit()
 
 def upsert(entity, del_vals=False):
     """Create or update a mongoengine entity, matching on keyfields.
