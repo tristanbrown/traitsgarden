@@ -1,6 +1,9 @@
 """Query Functions for the MongoDB"""
 
-import pdmongo as pdm
+import pandas as pd
+from sqlalchemy import select
+
+from traitsgarden.db.connect import sqlsession
 
 def query_as_df(collection, queryargs=None):
     """Query the collection as a dataframe.
@@ -13,12 +16,17 @@ def query_as_df(collection, queryargs=None):
         collection=collection, query=queryargs, db=db, index_col='_id')
     return df
 
-def get_existing(entity, fields):
+def query_as_obj(model, **fieldvals):
+    """Find the existing entry(ies) in the database, matching the fieldvals.
+    """
+    stmt = select(model).filter_by(**fieldvals)
+    result = sqlsession.execute(stmt)
+    return result.scalars().all()
+
+def query_existing(entity, fields):
     """Find the existing entry(ies) in the database matching the given fields
     on the given object.
     """
-    model = entity.__class__
-    if not isinstance(fields, list):
-        fields = [fields]
-    keyfields = {field: getattr(entity, field) for field in fields}
-    return model.objects(**keyfields)
+    fieldvals = {field: getattr(entity, field) for field in fields}
+    result = query_as_obj(entity.__class__, **fieldvals)
+    return result

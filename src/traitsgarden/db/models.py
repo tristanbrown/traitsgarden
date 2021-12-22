@@ -10,7 +10,7 @@ from sqlalchemy.types import (Integer, TIMESTAMP, Numeric, String, Date,
 from sqlalchemy.orm import validates
 
 from traitsgarden.db.connect import Base, sqlsession
-from traitsgarden.db.query import get_existing
+from traitsgarden.db.query import query_existing
 from traitsgarden.db import util
 
 class Plant(Base):
@@ -84,9 +84,9 @@ class Plant(Base):
 
     @property
     def db_obj(self):
-        existing = get_existing(self, ['name', 'category', 'parent_id', 'individual'])
+        existing = query_existing(self, ['name', 'category', 'parent_id', 'individual'])
         if existing:
-            return existing.get()
+            return existing[0]
 
 class Seeds(Base):
     __tablename__ = 'seeds'
@@ -129,9 +129,9 @@ class Seeds(Base):
 
     @property
     def db_obj(self):
-        existing = get_existing(self, ['name', 'category', 'year', 'variant'])
+        existing = query_existing(self, ['name', 'category', 'year', 'variant'])
         if existing:
-            return existing.get()
+            return existing[0]
 
 def create_all():
     Base.metadata.create_all()
