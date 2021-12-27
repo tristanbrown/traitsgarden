@@ -5,16 +5,12 @@ from sqlalchemy import select
 
 from traitsgarden.db.connect import sqlsession
 
-def query_as_df(collection, queryargs=None):
-    """Query the collection as a dataframe.
+def query_as_df(query):
+    """Query the table as a dataframe.
 
-    Usage:
-    query_as_df('seeds', [{"$match": {'category': 'tomato'} }])
+    The query can be a SQL SELECT statement, or a table name.
     """
-    queryargs = queryargs or []
-    df = pdm.read_mongo(
-        collection=collection, query=queryargs, db=db, index_col='_id')
-    return df
+    return pd.read_sql(query, sqlsession.bind)
 
 def query_as_obj(model, **fieldvals):
     """Find the existing entry(ies) in the database, matching the fieldvals.
