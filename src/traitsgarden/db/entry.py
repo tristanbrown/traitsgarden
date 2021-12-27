@@ -1,5 +1,7 @@
 """Data Entry into Postgresql"""
 import numpy as np
+from sqlalchemy.exc import IntegrityError
+from psycopg2.errors import UniqueViolation
 
 from traitsgarden.db.connect import sqlsession
 
@@ -15,32 +17,34 @@ def bulk_insert(entities):
     sqlsession.commit()
 
 def upsert(entity, del_vals=False):
-    """Create or update a mongoengine entity, matching on keyfields.
+    """Create or update a sqlalchemy entity, matching on keyfields.
 
     Set 'del_vals' to True to also sync null values.
     """
     try:
-        entity.save()
-        entity.reload()
+        sqlsession.add(entity)
+        sqlsession.commit()
         return entity
-    except NotUniqueError:
+    except IntegrityError as ex:
+        assert isinstance(ex.orig, UniqueViolation)
+        sqlsession.rollback()
+
         existobj = entity.db_obj
-        newvals = entity.to_mongo().to_dict()
-        try:
-            del newvals['_id']
-        except KeyError:
-            pass
+        newvals = entity.__dict__.copy()
+        del newvals['_sa_instance_state']
         for k, v in newvals.items():
             setattr(existobj, k, v)
+
         if del_vals:
-            existvals = existobj.to_mongo().to_dict()
+            existvals = existobj.__dict__.copy()
             del existvals['_id']
             missing_fields = set(existvals.keys()) - set(newvals.keys())
             for field in missing_fields:
                 delattr(existobj, field)
-        existobj.save()
-        existobj.reload()
+
+        sqlsession.commit()
         return existobj
+
     except ValidationError:
-        print(entity.to_mongo().to_dict())
+        print(entity.__dict__)
         raise

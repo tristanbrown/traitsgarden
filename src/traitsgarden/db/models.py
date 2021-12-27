@@ -58,12 +58,15 @@ class Plant(Base):
     @validates('individual')
     def validate_individual(self, key, individual):
         try:
+            return int(individual)
+        except ValueError:
             indiv_id = ord(individual) - 96
             if (indiv_id >= 1) and (indiv_id <= 26):
                 return int(indiv_id)
+            else:
+                raise
         except TypeError:
-            pass
-        return individual
+            return 1
 
     @property
     def plant_id(self):
