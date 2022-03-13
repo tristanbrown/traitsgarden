@@ -1,8 +1,5 @@
-from dash import dcc
-from dash import html
+from dash import dcc, html, callback
 from dash.dependencies import Input, Output
-
-from traitsgarden.webapp import app
 
 layout = html.Div([
     html.H3('App 1'),
@@ -20,7 +17,7 @@ layout = html.Div([
 ])
 
 
-@app.callback(
+@callback(
     Output('app-1-display-value', 'children'),
     [Input('app-1-dropdown', 'value')])
 def display_value(value):

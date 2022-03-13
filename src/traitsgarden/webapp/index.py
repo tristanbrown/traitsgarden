@@ -1,6 +1,5 @@
 """URL routing for the Dash/Flask app"""
-from dash import dcc
-from dash import html
+from dash import dcc, html, callback
 from dash.dependencies import Input, Output
 from flask import render_template
 
@@ -21,7 +20,7 @@ app.layout = html.Div([
     html.Div(id='page-content')
 ])
 
-@app.callback(Output('page-content', 'children'),
+@callback(Output('page-content', 'children'),
               [Input('url', 'pathname')])
 def display_page(pathname):
     if pathname == '/apps/app1':
