@@ -1,21 +1,11 @@
 """URL routing for the Dash/Flask app"""
 from dash import dcc, html, callback
 from dash.dependencies import Input, Output
-from flask import render_template
 
-from traitsgarden.webapp import app, server
-from traitsgarden.webapp.dashboards import app1, app2
-# from traitsgarden.views import studies_blueprint
-
-## Flask Pages ##
-# server.register_blueprint(studies_blueprint, url_prefix="/studies")
-
-@server.route("/home")
-def index():
-    return render_template('home.html')
+from traitsgarden.pages import app1, app2
 
 ## Dash Pages ##
-app.layout = html.Div([
+layout = html.Div([
     dcc.Location(id='url', refresh=False),
     html.Div(id='page-content')
 ])

@@ -9,9 +9,6 @@ REQUIREMENTS = [
     'sqlalchemy>=1.4.0',
     'alembic',
     'arrow',
-    'flask>=2.0.2',
-    'flask_wtf',
-    'wtforms',
     'dash>=2.0.0',
 ]
 

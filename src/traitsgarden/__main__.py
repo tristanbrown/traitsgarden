@@ -1,5 +1,5 @@
 """Main module for running the Flask app."""
-from traitsgarden.webapp.index import app
+from traitsgarden import app
 
 def run():
     """Main method to run the app."""
