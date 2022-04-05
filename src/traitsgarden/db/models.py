@@ -13,16 +13,27 @@ from traitsgarden.db.connect import Base, sqlsession
 from traitsgarden.db.query import query_existing
 from traitsgarden.db import util
 
-class Plant(Base):
-    __tablename__ = 'plant'
+class Cultivar(Base):
+    __tablename__ = 'cultivar'
 
     id = Column(Integer, primary_key=True)
     name = Column(String(length=120), nullable=False)
     category = Column(String(length=120), nullable=False)
     species = Column(String(length=120))
-    parent_id = Column(String(length=4), nullable=False)
+    hybrid = Column(Boolean(), default=False)
+    description = Column(String())
+
+    __table_args__ = (
+        UniqueConstraint('name', 'category', name='_cultivar_uc'),
+
+class Plant(Base):
+    __tablename__ = 'plant'
+
+    id = Column(Integer, primary_key=True)
+    seeds = Column(Integer, ForeignKey('seeds.id'))
+    seed_id = Column(String(length=4), nullable=False)
     individual = Column(Integer(), nullable=False, default=1)
-    year = Column(Integer())
+
     start_date = Column(Date())
     germ_date = Column(Date())
     flower_date = Column(Date())
@@ -37,7 +48,7 @@ class Plant(Base):
     done = Column(Boolean(), default=False)
 
     __table_args__ = (
-        UniqueConstraint('name', 'category', 'parent_id', 'individual', name='_plant_id_uc'),
+        UniqueConstraint('seeds', 'individual', name='_plant_id_uc'),
                      )
 
     def __repr__(self, recursion=False):
@@ -95,20 +106,19 @@ class Seeds(Base):
     __tablename__ = 'seeds'
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(length=120), nullable=False)
-    category = Column(String(length=120), nullable=False)
-    species = Column(String(length=120))
-    source = Column(String(length=120))
-    # parent_plants = ListField(LazyReferenceField('Plant'))
+    cultivar = Column(Integer, ForeignKey('cultivar.id'), nullable=False)
     variant = Column(String(length=2), nullable=False)
     year = Column(Integer(), nullable=False)
+    mother = Column(Integer, ForeignKey('plant.id'))
+    father = Column(Integer, ForeignKey('plant.id'))
+
+    source = Column(String(length=120))
     last_count = Column(Integer())
     generation = Column(String(length=2), default='1')
     germination = Column(Numeric(2, 2))
-    parent_description = Column(String())
 
     __table_args__ = (
-        UniqueConstraint('name', 'category', 'year', 'variant', name='_seeds_id_uc'),
+        UniqueConstraint('cultivar', 'year', 'variant', name='_seeds_id_uc'),
                      )
 
     def __repr__(self, recursion=False):
