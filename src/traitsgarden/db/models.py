@@ -3,11 +3,13 @@ import arrow
 import numpy as np
 import pandas as pd
 
-from sqlalchemy import Column, asc, desc, Computed, UniqueConstraint
+from sqlalchemy import (Column, ForeignKey, asc, desc, Computed, UniqueConstraint,
+    ForeignKeyConstraint, cast
+)
 from sqlalchemy.types import (Integer, TIMESTAMP, Numeric, String, Date,
     Boolean
 )
-from sqlalchemy.orm import validates
+from sqlalchemy.orm import validates, relationship, column_property
 
 from traitsgarden.db.connect import Base, sqlsession
 from traitsgarden.db.query import query_existing
@@ -25,14 +27,22 @@ class Cultivar(Base):
 
     __table_args__ = (
         UniqueConstraint('name', 'category', name='_cultivar_uc'),
+    )
 
 class Plant(Base):
     __tablename__ = 'plant'
 
     id = Column(Integer, primary_key=True)
-    seeds = Column(Integer, ForeignKey('seeds.id'))
-    seed_id = Column(String(length=4), nullable=False)
+    seeds_id = Column(Integer)
+    seeds = relationship('Seeds', #foreign_keys=[seeds_id],
+        primaryjoin="foreign(Plant.seeds_id)==Seeds.id"
+        )
+    # seed_id = Column(String(length=4), nullable=False)
     individual = Column(Integer(), nullable=False, default=1)
+    ForeignKeyConstraint(
+        ['seeds_id'], ['seeds.id'],
+        name='fk_plant_seeds_id', use_alter=True
+    )
 
     start_date = Column(Date())
     germ_date = Column(Date())
@@ -48,17 +58,17 @@ class Plant(Base):
     done = Column(Boolean(), default=False)
 
     __table_args__ = (
-        UniqueConstraint('seeds', 'individual', name='_plant_id_uc'),
+        UniqueConstraint('seeds_id', 'individual', name='_plant_id_uc'),
                      )
 
-    def __repr__(self, recursion=False):
-        try:
-            return f"<{self.name} - {self.category} - {self.plant_id}>"
-        except:
-            if recursion:
-                raise
-            self.clean()
-            return self.__repr__(recursion=True)
+    # def __repr__(self, recursion=False):
+    #     try:
+    #         return f"<{self.name} - {self.category} - {self.plant_id}>"
+    #     except:
+    #         if recursion:
+    #             raise
+    #         self.clean()
+    #         return self.__repr__(recursion=True)
 
     @validates('height')
     def validate_height(self, key, height):
@@ -106,11 +116,16 @@ class Seeds(Base):
     __tablename__ = 'seeds'
 
     id = Column(Integer, primary_key=True)
-    cultivar = Column(Integer, ForeignKey('cultivar.id'), nullable=False)
+    cultivar_id = Column(Integer, ForeignKey('cultivar.id'), nullable=False)
+    cultivar = relationship("Cultivar")
     variant = Column(String(length=2), nullable=False)
     year = Column(Integer(), nullable=False)
-    mother = Column(Integer, ForeignKey('plant.id'))
-    father = Column(Integer, ForeignKey('plant.id'))
+    seed_id = column_property(cast(year, String) + variant)
+
+    mother_id = Column(Integer, ForeignKey('plant.id'))
+    father_id = Column(Integer, ForeignKey('plant.id'))
+    mother = relationship("Plant", foreign_keys=[mother_id], post_update=True)
+    father = relationship("Plant", foreign_keys=[father_id], post_update=True)
 
     source = Column(String(length=120))
     last_count = Column(Integer())
@@ -118,21 +133,21 @@ class Seeds(Base):
     germination = Column(Numeric(2, 2))
 
     __table_args__ = (
-        UniqueConstraint('cultivar', 'year', 'variant', name='_seeds_id_uc'),
+        UniqueConstraint('cultivar_id', 'year', 'variant', name='_seeds_id_uc'),
                      )
 
-    def __repr__(self, recursion=False):
-        try:
-            return f"<{self.name} - {self.category} - {self.seeds_id}>"
-        except:
-            if recursion:
-                raise
-            self.clean()
-            return self.__repr__(recursion=True)
+    # def __repr__(self, recursion=False):
+    #     try:
+    #         return f"<{self.name} - {self.category} - {self.seeds_id}>"
+    #     except:
+    #         if recursion:
+    #             raise
+    #         self.clean()
+    #         return self.__repr__(recursion=True)
 
-    @property
-    def seeds_id(self):
-        return f"{str(self.year)[-2:]}{self.variant}"
+    # @property
+    # def seeds_id(self):
+    #     return f"{str(self.year)[-2:]}{self.variant}"
 
     @staticmethod
     def parse_id(seeds_id):
