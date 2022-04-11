@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 
 from sqlalchemy import (Column, ForeignKey, asc, desc, Computed, UniqueConstraint,
-    ForeignKeyConstraint, cast
+    ForeignKeyConstraint, cast, func
 )
 from sqlalchemy.types import (Integer, TIMESTAMP, Numeric, String, Date,
     Boolean
@@ -118,9 +118,10 @@ class Seeds(Base):
     id = Column(Integer, primary_key=True)
     cultivar_id = Column(Integer, ForeignKey('cultivar.id'), nullable=False)
     cultivar = relationship("Cultivar")
-    variant = Column(String(length=2), nullable=False)
     year = Column(Integer(), nullable=False)
-    seed_id = column_property(cast(year, String) + variant)
+    variant = Column(String(length=2), nullable=False)
+    seeds_id = column_property(
+        func.substr(cast(year, String), 3, 5) + variant)
 
     mother_id = Column(Integer, ForeignKey('plant.id'))
     father_id = Column(Integer, ForeignKey('plant.id'))
@@ -144,16 +145,6 @@ class Seeds(Base):
     #             raise
     #         self.clean()
     #         return self.__repr__(recursion=True)
-
-    # @property
-    # def seeds_id(self):
-    #     return f"{str(self.year)[-2:]}{self.variant}"
-
-    @staticmethod
-    def parse_id(seeds_id):
-        year = f"20{seeds_id[:2]}"
-        variant = seeds_id[2:]
-        return {'year': year, 'variant': variant}
 
     @property
     def db_obj(self):
