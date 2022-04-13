@@ -137,18 +137,14 @@ class Seeds(Base):
         UniqueConstraint('cultivar_id', 'year', 'variant', name='_seeds_id_uc'),
                      )
 
-    # def __repr__(self, recursion=False):
-    #     try:
-    #         return f"<{self.name} - {self.category} - {self.seeds_id}>"
-    #     except:
-    #         if recursion:
-    #             raise
-    #         self.clean()
-    #         return self.__repr__(recursion=True)
+    def __repr__(self, recursion=False):
+        cultivar = self.cultivar
+        return f"<Seeds: {cultivar.name} - {cultivar.category} - {self.seeds_id}>"
 
     @property
     def db_obj(self):
-        existing = query_existing(self, ['name', 'category', 'year', 'variant'])
+        existing = query_existing(self, 
+            ['cultivar__name', 'cultivar__category', 'year', 'variant'])
         if existing:
             return existing[0]
 
