@@ -18,16 +18,19 @@ from traitsgarden.db import util
 class Cultivar(Base):
     __tablename__ = 'cultivar'
 
+    ## ID Fields
     id = Column(Integer, primary_key=True)
     name = Column(String(length=120), nullable=False)
     category = Column(String(length=120), nullable=False)
-    species = Column(String(length=120))
-    hybrid = Column(Boolean(), default=False)
-    description = Column(String())
 
     __table_args__ = (
         UniqueConstraint('name', 'category', name='_cultivar_uc'),
     )
+
+    ## Info Fields
+    species = Column(String(length=120))
+    hybrid = Column(Boolean(), default=False)
+    description = Column(String())
 
 class Plant(Base):
     __tablename__ = 'plant'
@@ -115,6 +118,7 @@ class Plant(Base):
 class Seeds(Base):
     __tablename__ = 'seeds'
 
+    ## ID Fields
     id = Column(Integer, primary_key=True)
     cultivar_id = Column(Integer, ForeignKey('cultivar.id'), nullable=False)
     cultivar = relationship("Cultivar")
@@ -123,19 +127,21 @@ class Seeds(Base):
     pkt_id = column_property(
         func.substr(cast(year, String), 3, 5) + variant)
 
+    __table_args__ = (
+        UniqueConstraint('cultivar_id', 'year', 'variant', name='_seeds_uc'),
+                     )
+
+    ## Parent/Child Relationships
     mother_id = Column(Integer, ForeignKey('plant.id'))
     father_id = Column(Integer, ForeignKey('plant.id'))
     mother = relationship("Plant", foreign_keys=[mother_id], post_update=True)
     father = relationship("Plant", foreign_keys=[father_id], post_update=True)
 
+    ## Seeds Data
     source = Column(String(length=120))
     last_count = Column(Integer())
     generation = Column(String(length=2), default='1')
     germination = Column(Numeric(2, 2))
-
-    __table_args__ = (
-        UniqueConstraint('cultivar_id', 'year', 'variant', name='_seeds_uc'),
-                     )
 
     def __repr__(self, recursion=False):
         cultivar = self.cultivar
