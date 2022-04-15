@@ -120,7 +120,7 @@ class Seeds(Base):
     cultivar = relationship("Cultivar")
     year = Column(Integer(), nullable=False)
     variant = Column(String(length=2), nullable=False)
-    seeds_id = column_property(
+    pkt_id = column_property(
         func.substr(cast(year, String), 3, 5) + variant)
 
     mother_id = Column(Integer, ForeignKey('plant.id'))
@@ -134,12 +134,12 @@ class Seeds(Base):
     germination = Column(Numeric(2, 2))
 
     __table_args__ = (
-        UniqueConstraint('cultivar_id', 'year', 'variant', name='_seeds_id_uc'),
+        UniqueConstraint('cultivar_id', 'year', 'variant', name='_seeds_uc'),
                      )
 
     def __repr__(self, recursion=False):
         cultivar = self.cultivar
-        return f"<Seeds: {cultivar.name} - {cultivar.category} - {self.seeds_id}>"
+        return f"<Seeds: {cultivar.name} - {cultivar.category} - {self.pkt_id}>"
 
     @property
     def db_obj(self):
