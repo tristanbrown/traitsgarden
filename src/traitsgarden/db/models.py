@@ -10,6 +10,7 @@ from sqlalchemy.types import (Integer, TIMESTAMP, Numeric, String, Date,
     Boolean
 )
 from sqlalchemy.orm import validates, relationship, column_property
+from sqlalchemy.ext.associationproxy import association_proxy
 
 from traitsgarden.db.connect import Base, sqlsession
 from traitsgarden.db.query import query_existing
@@ -40,6 +41,8 @@ class Plant(Base):
     seeds = relationship('Seeds', #foreign_keys=[seeds_id],
         primaryjoin="foreign(Plant.seeds_id)==Seeds.id"
         )
+    name = association_proxy('seeds', 'name')
+    category = association_proxy('seeds', 'category')
     # seed_id = Column(String(length=4), nullable=False)
     individual = Column(Integer(), nullable=False, default=1)
     ForeignKeyConstraint(
@@ -122,6 +125,8 @@ class Seeds(Base):
     id = Column(Integer, primary_key=True)
     cultivar_id = Column(Integer, ForeignKey('cultivar.id'), nullable=False)
     cultivar = relationship("Cultivar")
+    name = association_proxy('cultivar', 'name')
+    category = association_proxy('cultivar', 'category')
     year = Column(Integer(), nullable=False)
     variant = Column(String(length=2), nullable=False)
     pkt_id = column_property(
