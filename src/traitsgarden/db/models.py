@@ -33,6 +33,9 @@ class Cultivar(Base):
     hybrid = Column(Boolean(), default=False)
     description = Column(String())
 
+    def __repr__(self, recursion=False):
+        return f"<Cultivar: {self.name} - {self.category}>"
+
 class Seeds(Base):
     __tablename__ = 'seeds'
 
@@ -64,13 +67,12 @@ class Seeds(Base):
     germination = Column(Numeric(2, 2))
 
     def __repr__(self, recursion=False):
-        cultivar = self.cultivar
-        return f"<Seeds: {cultivar.name} - {cultivar.category} - {self.pkt_id}>"
+        return f"<Seeds: {self.name} - {self.category} - {self.pkt_id}>"
 
     @property
     def db_obj(self):
         existing = query_existing(self,
-            ['cultivar__name', 'cultivar__category', 'year', 'variant'])
+            ['name', 'category', 'year', 'variant'])
         if existing:
             return existing[0]
 
@@ -114,14 +116,14 @@ class Plant(Base):
         UniqueConstraint('seeds_id', 'individual', name='_plant_id_uc'),
                      )
 
-    # def __repr__(self, recursion=False):
-    #     try:
-    #         return f"<{self.name} - {self.category} - {self.plant_id}>"
-    #     except:
-    #         if recursion:
-    #             raise
-    #         self.clean()
-    #         return self.__repr__(recursion=True)
+    def __repr__(self, recursion=False):
+        return f"<Plant: {self.name} - {self.category} - {self.plant_id}>"
+
+    @property
+    def db_obj(self):
+        existing = query_existing(self, ['seeds_id', 'individual'])
+        if existing:
+            return existing[0]
 
     @validates('height')
     def validate_height(self, key, height):
@@ -154,12 +156,6 @@ class Plant(Base):
             return parent.get()
         except DoesNotExist:
             return
-
-    @property
-    def db_obj(self):
-        existing = query_existing(self, ['name', 'category', 'parent_id', 'individual'])
-        if existing:
-            return existing[0]
 
 def create_all():
     Base.metadata.create_all()
