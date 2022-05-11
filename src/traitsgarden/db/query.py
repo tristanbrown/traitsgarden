@@ -3,16 +3,18 @@
 import pandas as pd
 from sqlalchemy import select
 
-from traitsgarden.db.connect import sqlsession
+from traitsgarden.db.connect import Session
 
 def query_as_df(query):
     """Query the table as a dataframe.
 
     The query can be a SQL SELECT statement, or a table name.
     """
-    return pd.read_sql(query, sqlsession.bind)
+    with Session() as session:
+        df = pd.read_sql(query, session.bind)
+    return df
 
-def query_as_obj(model, **fieldvals):
+def query_as_obj(model, bind=None, **fieldvals):
     """Find the existing entry(ies) in the database, matching the fieldvals.
     Use '__' to match attributes on a child object.
     Example:
@@ -32,10 +34,11 @@ def query_as_obj(model, **fieldvals):
 
     ## Run the query
     stmt = select(model).where(*conds)
-    result = sqlsession.execute(stmt)
-    return result.scalars().all()
+    result = bind.execute(stmt)
+    obj = result.scalars().all()
+    return obj
 
-def query_existing(entity, fields):
+def query_existing(entity, fields, bind=None):
     """Find the existing entry(ies) in the database matching the given fields
     on the given object.
     Example:
@@ -51,5 +54,5 @@ def query_existing(entity, fields):
             ## Ordinary attribute
             fieldvals[field] = getattr(entity, field)
 
-    result = query_as_obj(entity.__class__, **fieldvals)
+    result = query_as_obj(entity.__class__, bind=bind, **fieldvals)
     return result

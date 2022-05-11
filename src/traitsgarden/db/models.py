@@ -9,10 +9,10 @@ from sqlalchemy import (Column, ForeignKey, asc, desc, Computed, UniqueConstrain
 from sqlalchemy.types import (Integer, TIMESTAMP, Numeric, String, Date,
     Boolean
 )
-from sqlalchemy.orm import validates, relationship, column_property
+from sqlalchemy.orm import validates, relationship, column_property, close_all_sessions
 from sqlalchemy.ext.associationproxy import association_proxy
 
-from traitsgarden.db.connect import Base, sqlsession
+from traitsgarden.db.connect import Base, Session
 from traitsgarden.db.query import query_existing
 from traitsgarden.db import util
 
@@ -69,10 +69,9 @@ class Seeds(Base):
     def __repr__(self, recursion=False):
         return f"<Seeds: {self.name} - {self.category} - {self.pkt_id}>"
 
-    @property
-    def db_obj(self):
+    def db_obj(self, bind):
         existing = query_existing(self,
-            ['name', 'category', 'year', 'variant'])
+            ['name', 'category', 'year', 'variant'], bind=bind)
         if existing:
             return existing[0]
 
@@ -119,9 +118,8 @@ class Plant(Base):
     def __repr__(self, recursion=False):
         return f"<Plant: {self.name} - {self.category} - {self.plant_id}>"
 
-    @property
-    def db_obj(self):
-        existing = query_existing(self, ['seeds_id', 'individual'])
+    def db_obj(self, bind):
+        existing = query_existing(self, ['pkt_id', 'individual'], bind=bind)
         if existing:
             return existing[0]
 
@@ -162,6 +160,6 @@ def create_all():
     print("Created all tables.")
 
 def drop_all():
-    sqlsession.close_all()
+    close_all_sessions()
     Base.metadata.drop_all()
     print("Dropped all tables.")
