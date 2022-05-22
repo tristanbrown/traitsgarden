@@ -13,7 +13,7 @@ from sqlalchemy.orm import validates, relationship, column_property, close_all_s
 from sqlalchemy.ext.associationproxy import association_proxy
 
 from traitsgarden.db.connect import Base, Session
-from traitsgarden.db.query import query_existing
+from traitsgarden.db.query import query_existing, query_one_obj
 from traitsgarden.db import util
 
 class Cultivar(Base):
@@ -35,6 +35,10 @@ class Cultivar(Base):
 
     def __repr__(self, recursion=False):
         return f"<Cultivar: {self.name} - {self.category}>"
+
+    @classmethod
+    def query(cls, name, category, bind):
+        return query_one_obj(cls, bind, name=name, category=category)
 
 class Seeds(Base):
     __tablename__ = 'seeds'
@@ -69,11 +73,9 @@ class Seeds(Base):
     def __repr__(self, recursion=False):
         return f"<Seeds: {self.name} - {self.category} - {self.pkt_id}>"
 
-    def db_obj(self, bind):
-        existing = query_existing(self,
-            ['name', 'category', 'year', 'variant'], bind=bind)
-        if existing:
-            return existing[0]
+    @classmethod
+    def query(cls, name, category, pkt_id, bind):
+        return query_one_obj(cls, bind, name=name, category=category, pkt_id=pkt_id)
 
 class Plant(Base):
     __tablename__ = 'plant'

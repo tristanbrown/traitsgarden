@@ -38,6 +38,12 @@ def query_as_obj(model, bind=None, **fieldvals):
     obj = result.scalars().all()
     return obj
 
+def query_one_obj(model, bind=None, **fieldvals):
+    """Return the first result from query_as_obj."""
+    existing = query_as_obj(model, bind, **fieldvals)
+    if existing:
+        return existing[0]
+
 def query_existing(entity, fields, bind=None):
     """Find the existing entry(ies) in the database matching the given fields
     on the given object.
