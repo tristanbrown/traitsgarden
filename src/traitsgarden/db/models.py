@@ -37,8 +37,14 @@ class Cultivar(Base):
         return f"<Cultivar: {self.name} - {self.category}>"
 
     @classmethod
-    def query(cls, name, category, bind):
+    def query(cls, bind, name, category):
         return query_one_obj(cls, bind, name=name, category=category)
+
+    @classmethod
+    def add(cls, bind, name, category):
+        obj = cls(name=name, category=category)
+        bind.add(obj)
+        return obj
 
 class Seeds(Base):
     __tablename__ = 'seeds'
@@ -74,8 +80,18 @@ class Seeds(Base):
         return f"<Seeds: {self.name} - {self.category} - {self.pkt_id}>"
 
     @classmethod
-    def query(cls, name, category, pkt_id, bind):
+    def query(cls, bind, name, category, pkt_id):
         return query_one_obj(cls, bind, name=name, category=category, pkt_id=pkt_id)
+
+    @classmethod
+    def add(cls, bind, name, category, year, variant, **kwargs):
+        ## TODO: Consider using pkt_id
+        cultivar = Cultivar.query(bind, name, category)
+        if cultivar is None:
+            cultivar = Cultivar.add(bind, name, category)
+        obj = cls(cultivar=cultivar, year=year, variant=variant, **kwargs)
+        bind.add(obj)
+        return obj
 
 class Plant(Base):
     __tablename__ = 'plant'
