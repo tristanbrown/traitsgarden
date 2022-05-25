@@ -46,6 +46,9 @@ class Cultivar(Base):
         session.add(obj)
         return obj
 
+    def delete(self, session):
+        session.delete(self)
+
 class Seeds(Base):
     __tablename__ = 'seeds'
 
@@ -92,6 +95,9 @@ class Seeds(Base):
         obj = cls(cultivar=cultivar, year=year, variant=variant, **kwargs)
         session.add(obj)
         return obj
+
+    def delete(self, session):
+        session.delete(self)
 
 class Plant(Base):
     __tablename__ = 'plant'
