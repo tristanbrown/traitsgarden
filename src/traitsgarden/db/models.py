@@ -37,13 +37,13 @@ class Cultivar(Base):
         return f"<Cultivar: {self.name} - {self.category}>"
 
     @classmethod
-    def query(cls, bind, name, category):
-        return query_one_obj(cls, bind, name=name, category=category)
+    def query(cls, session, name, category):
+        return query_one_obj(cls, session, name=name, category=category)
 
     @classmethod
-    def add(cls, bind, name, category):
+    def add(cls, session, name, category):
         obj = cls(name=name, category=category)
-        bind.add(obj)
+        session.add(obj)
         return obj
 
 class Seeds(Base):
@@ -80,17 +80,17 @@ class Seeds(Base):
         return f"<Seeds: {self.name} - {self.category} - {self.pkt_id}>"
 
     @classmethod
-    def query(cls, bind, name, category, pkt_id):
-        return query_one_obj(cls, bind, name=name, category=category, pkt_id=pkt_id)
+    def query(cls, session, name, category, pkt_id):
+        return query_one_obj(cls, session, name=name, category=category, pkt_id=pkt_id)
 
     @classmethod
-    def add(cls, bind, name, category, year, variant, **kwargs):
+    def add(cls, session, name, category, year, variant, **kwargs):
         ## TODO: Consider using pkt_id
-        cultivar = Cultivar.query(bind, name, category)
+        cultivar = Cultivar.query(session, name, category)
         if cultivar is None:
-            cultivar = Cultivar.add(bind, name, category)
+            cultivar = Cultivar.add(session, name, category)
         obj = cls(cultivar=cultivar, year=year, variant=variant, **kwargs)
-        bind.add(obj)
+        session.add(obj)
         return obj
 
 class Plant(Base):
@@ -136,8 +136,8 @@ class Plant(Base):
     def __repr__(self, recursion=False):
         return f"<Plant: {self.name} - {self.category} - {self.plant_id}>"
 
-    def db_obj(self, bind):
-        existing = query_existing(self, ['pkt_id', 'individual'], bind=bind)
+    def db_obj(self, session):
+        existing = query_existing(self, ['pkt_id', 'individual'], session=session)
         if existing:
             return existing[0]
 
