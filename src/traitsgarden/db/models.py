@@ -87,8 +87,9 @@ class Seeds(Base):
         return query_one_obj(cls, session, name=name, category=category, pkt_id=pkt_id)
 
     @classmethod
-    def add(cls, session, name, category, year, variant, **kwargs):
-        ## TODO: Consider using pkt_id
+    def add(cls, session, name, category, pkt_id, **kwargs):
+        year = f"20{pkt_id[0:2]}"
+        variant = pkt_id[-1]
         cultivar = Cultivar.query(session, name, category)
         if cultivar is None:
             cultivar = Cultivar.add(session, name, category)
@@ -142,10 +143,20 @@ class Plant(Base):
     def __repr__(self, recursion=False):
         return f"<Plant: {self.name} - {self.category} - {self.plant_id}>"
 
-    def db_obj(self, session):
-        existing = query_existing(self, ['pkt_id', 'individual'], session=session)
-        if existing:
-            return existing[0]
+    @classmethod
+    def query(cls, session, name, category, plant_id):
+        return query_one_obj(cls, session, name=name, category=category, plant_id=plant_id)
+
+    @classmethod
+    def add(cls, session, name, category, plant_id, **kwargs):
+        pkt_id = plant_id[:-2]
+        individual = plant_id[-2:]
+        seedparent = Seeds.query(session, name, category, pkt_id)
+        if seedparent is None:
+            seedparent = Seeds.add(session, name, category, pkt_id)
+        obj = cls(seeds=seedparent, individual=individual, **kwargs)
+        session.add(obj)
+        return obj
 
     @validates('height')
     def validate_height(self, key, height):
