@@ -100,6 +100,27 @@ class Seeds(Base):
     def delete(self, session):
         session.delete(self)
 
+    def add_parent(self, session, plant_id, parent=None, name=None, category=None):
+        """Defaults to the same name/category,
+        but others can be specified for crossbreeds.
+
+        Default parent is both. Can be specified to 'mother' or 'father'.
+        """
+        if name is None:
+            name = self.name
+        if category is None:
+            category = self.category
+        parent_obj = Plant.query(session, name, category, plant_id)
+        self.add_parent_obj(session, parent_obj, parent)
+
+    def add_parent_obj(self, session, parent_obj, parent=None):
+        """Default parent is both. Can be specified to 'mother' or 'father'."""
+        if parent is None:
+            for _parent in ('mother', 'father'):
+                setattr(self, _parent, parent_obj)
+        else:
+            setattr(self, parent, parent_obj)
+
 class Plant(Base):
     __tablename__ = 'plant'
 
