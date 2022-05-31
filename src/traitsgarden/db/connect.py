@@ -1,16 +1,27 @@
 """Connection to Postgres"""
-import os
-from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
-load_dotenv()
+from traitsgarden.settings import DBConfig
 
-LOCALTZ = os.getenv('TIMEZONE', 'US/Pacific')
+Base = declarative_base()
+Session = sessionmaker()
 
-db_url = f"postgresql://postgres:{os.getenv('POSTGRES_PASSWORD')}@postgres/garden"
-sqlengine = create_engine(db_url)
+def get_engine(db_name):
+    db_url = f"postgresql://{DBConfig.USER}:{DBConfig.PW}@{DBConfig.HOST}/{db_name}"
+    return create_engine(db_url)
 
-Session = sessionmaker(bind=sqlengine)
-Base = declarative_base(bind=sqlengine)
+sqlengines = {
+    'default': get_engine(DBConfig.NAME),
+    'test': get_engine(DBConfig.TESTNAME),
+}
+
+def connect_db(engine='default'):
+    engine = sqlengines[engine]
+    Base.metadata.bind = engine
+    Session.configure(bind=engine)
+    db_name = str(engine.url).split('/')[-1]
+    print(f"Connected DB: {db_name}")
+
+connect_db()
