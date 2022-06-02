@@ -3,18 +3,14 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
-from traitsgarden.settings import DBConfig
+from traitsgarden.settings import Config, TestConfig
 
 Base = declarative_base()
 Session = sessionmaker()
 
-def get_engine(db_name):
-    db_url = f"postgresql://{DBConfig.USER}:{DBConfig.PW}@{DBConfig.HOST}/{db_name}"
-    return create_engine(db_url)
-
 sqlengines = {
-    'default': get_engine(DBConfig.NAME),
-    'test': get_engine(DBConfig.TESTNAME),
+    'default': create_engine(Config().DATABASE_URI),
+    'test': create_engine(TestConfig().DATABASE_URI),
 }
 
 def connect_db(engine='default'):
