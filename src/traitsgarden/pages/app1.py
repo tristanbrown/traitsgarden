@@ -16,8 +16,11 @@ layout = html.Div([
     dcc.Link('Go to App 2', href='/apps/app2'),
 ])
 
-@callback(
-    Output('app-1-display-value', 'children'),
-    [Input('app-1-dropdown', 'value')])
-def display_value(value):
-    return 'You have selected "{}"'.format(value)
+def get_callbacks(sqlsession):
+
+    @callback(
+        Output('app-1-display-value', 'children'),
+        [Input('app-1-dropdown', 'value')])
+    def display_value(value):
+        return f"DB URI: {str(sqlsession.bind.url)}"
+        # return 'You have selected "{}"'.format(value)

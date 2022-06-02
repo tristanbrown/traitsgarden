@@ -1,5 +1,13 @@
 """Main module for running the Flask app."""
+import os
+import argparse
 from traitsgarden import app
+
+parser = argparse.ArgumentParser(description='Process some integers.')
+parser.add_argument('-t', '--test', action='store_true')
+args = parser.parse_args()
+if args.test:
+    os.environ['APP_ENV'] = 'test'
 
 def run():
     """Main method to run the app."""
