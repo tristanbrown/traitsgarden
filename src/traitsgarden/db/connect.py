@@ -1,4 +1,5 @@
 """Connection to Postgres"""
+import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
@@ -13,8 +14,9 @@ sqlengines = {
     'test': create_engine(TestConfig().DATABASE_URI),
 }
 
-def connect_db(engine='default'):
-    engine = sqlengines[engine]
+def connect_db(enginekey='default'):
+    enginekey = os.getenv('APP_ENV') or enginekey
+    engine = sqlengines[enginekey]
     Base.metadata.bind = engine
     Session.configure(bind=engine)
     db_name = str(engine.url).split('/')[-1]

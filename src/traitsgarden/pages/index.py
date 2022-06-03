@@ -10,17 +10,10 @@ layout = html.Div([
     html.Div(id='page-content')
 ])
 
-def get_callbacks(sqlsession):
-
-    @callback(Output('page-content', 'children'),
-                [Input('url', 'pathname')])
-    def display_page(pathname):
-        if pathname == '/apps/app1':
-            return init_app(app1, sqlsession)
-        elif pathname == '/apps/app2':
-            return init_app(app2, sqlsession)
-
-def init_app(app, sqlsession):
-    layout = app.layout
-    app.get_callbacks(sqlsession)
-    return layout
+@callback(Output('page-content', 'children'),
+            [Input('url', 'pathname')])
+def display_page(pathname):
+    if pathname == '/apps/app1':
+        return app1.layout
+    elif pathname == '/apps/app2':
+        return app2.layout

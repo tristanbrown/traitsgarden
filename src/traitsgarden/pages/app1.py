@@ -1,5 +1,6 @@
 from dash import dcc, html, callback
 from dash.dependencies import Input, Output
+from traitsgarden.db.connect import Session
 
 layout = html.Div([
     html.H3('App 1'),
@@ -16,11 +17,9 @@ layout = html.Div([
     dcc.Link('Go to App 2', href='/apps/app2'),
 ])
 
-def get_callbacks(sqlsession):
-
-    @callback(
-        Output('app-1-display-value', 'children'),
-        [Input('app-1-dropdown', 'value')])
-    def display_value(value):
-        return f"DB URI: {str(sqlsession.bind.url)}"
-        # return 'You have selected "{}"'.format(value)
+@callback(
+    Output('app-1-display-value', 'children'),
+    [Input('app-1-dropdown', 'value')])
+def display_value(value):
+    return f"DB URI: {str(Session().bind.url)}"
+    # return 'You have selected "{}"'.format(value)

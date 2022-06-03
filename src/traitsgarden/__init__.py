@@ -13,9 +13,5 @@ server = app.server
 server.config.from_object(Config())
 app.config.suppress_callback_exceptions = True
 
-if os.getenv('APP_ENV') == 'test':
-    connect_db('test')
-
 ## Initial layout
 app.layout = index.layout
-index.get_callbacks(Session)
