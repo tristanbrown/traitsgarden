@@ -13,8 +13,7 @@ layout = html.Div([
         ]
     ),
     html.Div(id='app-1-display-value'),
-    html.A('Go Home', href='/home'),
-    dcc.Link('Go to App 2', href='/apps/app2'),
+    dcc.Link('Go to App 2', href='/test/app2'),
 ])
 
 @callback(
@@ -22,4 +21,3 @@ layout = html.Div([
     [Input('app-1-dropdown', 'value')])
 def display_value(value):
     return f"DB URI: {str(Session().bind.url)}"
-    # return 'You have selected "{}"'.format(value)
