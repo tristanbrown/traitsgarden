@@ -19,7 +19,8 @@ def display_page(pathname):
     if pathname == '/traitsgarden':
         return home.layout
     elif os.path.dirname(pathname) == '/traitsgarden/plant':
-        return plantpage.layout
+        id = os.path.basename(pathname)
+        return plantpage.get_layout(id)
     elif pathname == '/test/app1':
         return app1.layout
     elif pathname == '/test/app2':
