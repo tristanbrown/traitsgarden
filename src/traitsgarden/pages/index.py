@@ -1,8 +1,9 @@
 """URL routing for the Dash/Flask app"""
+import os
 from dash import dcc, html, callback
 from dash.dependencies import Input, Output
 
-from traitsgarden.pages import home, app1, app2
+from traitsgarden.pages import home, app1, app2, plantpage
 
 ## Dash Pages ##
 layout = html.Div([
@@ -17,6 +18,8 @@ layout = html.Div([
 def display_page(pathname):
     if pathname == '/traitsgarden':
         return home.layout
+    elif os.path.dirname(pathname) == '/traitsgarden/plant':
+        return plantpage.layout
     elif pathname == '/test/app1':
         return app1.layout
     elif pathname == '/test/app2':

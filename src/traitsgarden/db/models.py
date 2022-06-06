@@ -165,6 +165,10 @@ class Plant(Base):
         return f"<Plant: {self.name} - {self.category} - {self.plant_id}>"
 
     @classmethod
+    def get(cls, session, id):
+        return query_one_obj(cls, session, id=id)
+
+    @classmethod
     def query(cls, session, name, category, plant_id):
         return query_one_obj(cls, session, name=name, category=category, plant_id=plant_id)
 
