@@ -68,6 +68,7 @@ class Seeds(Base):
                      )
 
     ## Parent/Child Relationships
+    # TODO: Convert to Many to Many Fields with 'mother' bool flag in ref table
     mother_id = Column(Integer, ForeignKey('plant.id'))
     father_id = Column(Integer, ForeignKey('plant.id'))
     mother = relationship("Plant", foreign_keys=[mother_id], post_update=True)

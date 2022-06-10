@@ -3,7 +3,7 @@ import os
 from dash import dcc, html, callback
 from dash.dependencies import Input, Output
 
-from traitsgarden.pages import home, app1, app2, plantpage
+from traitsgarden.pages import home, app1, app2, search, plantpage
 
 ## Dash Pages ##
 layout = html.Div([
@@ -18,6 +18,8 @@ layout = html.Div([
 def display_page(pathname):
     if pathname == '/traitsgarden':
         return home.layout
+    elif pathname == '/traitsgarden/search':
+        return search.layout
     elif os.path.dirname(pathname) == '/traitsgarden/plant':
         id = os.path.basename(pathname)
         return plantpage.get_layout(id)

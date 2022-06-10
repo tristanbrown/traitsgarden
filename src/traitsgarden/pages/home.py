@@ -4,6 +4,8 @@ from traitsgarden.db.connect import Session
 
 layout = html.Div([
     html.H3('Traitsgarden'),
+    dcc.Link('Search', href='/traitsgarden/search'),
+    html.Br(),
     dcc.Link('Cultivars', href='/traitsgarden/cultivar'),
     html.Br(),
     dcc.Link('Seeds', href='/traitsgarden/seeds'),
