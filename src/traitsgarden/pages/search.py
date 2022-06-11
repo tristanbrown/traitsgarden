@@ -23,7 +23,6 @@ layout = html.Div([
         "Seeds ID",
         dcc.Dropdown(id="pkt-id-dropdown")
     ]),
-    html.Button(id='button-search', n_clicks=0, children='Search'),
     html.Div(id='dd-output-container'),
 ])
 
@@ -38,8 +37,9 @@ def update_options(search_value):
 
 @callback(
     Output('dd-output-container', 'children'),
-    Input('button-search', 'n_clicks'),
-    State('category-dropdown', 'value')
+    Input('category-dropdown', 'value'),
+    Input('name-dropdown', 'value'),
+    Input('pkt-id-dropdown', 'value'),
 )
-def update_output(n_clicks, value):
-    return f'You have selected {value}'
+def update_output(category, name, pkt_id):
+    return f'You have selected {category}, {name}, {pkt_id}'
