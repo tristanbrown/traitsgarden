@@ -38,7 +38,7 @@ class Cultivar(Base):
 
     @classmethod
     def query(cls, session, name, category):
-        return query_one_obj(cls, session, name=name, category=category)
+        return query_one_obj(session, cls, name=name, category=category)
 
     @classmethod
     def add(cls, session, name, category):
@@ -85,7 +85,7 @@ class Seeds(Base):
 
     @classmethod
     def query(cls, session, name, category, pkt_id):
-        return query_one_obj(cls, session, name=name, category=category, pkt_id=pkt_id)
+        return query_one_obj(session, cls, name=name, category=category, pkt_id=pkt_id)
 
     @classmethod
     def add(cls, session, name, category, pkt_id, **kwargs):
@@ -171,7 +171,7 @@ class Plant(Base):
 
     @classmethod
     def query(cls, session, name, category, plant_id):
-        return query_one_obj(cls, session, name=name, category=category, plant_id=plant_id)
+        return query_one_obj(session, cls, name=name, category=category, plant_id=plant_id)
 
     @classmethod
     def add(cls, session, name, category, plant_id, **kwargs):

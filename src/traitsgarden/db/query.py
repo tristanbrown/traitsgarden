@@ -14,7 +14,7 @@ def query_as_df(query):
         df = pd.read_sql(query, session.bind)
     return df
 
-def query_as_obj(model, session=None, **fieldvals):
+def query_as_obj(session, model, **fieldvals):
     """Find the existing entry(ies) in the database, matching the fieldvals.
     Use '__' to match attributes on a child object.
     Example:
@@ -38,13 +38,13 @@ def query_as_obj(model, session=None, **fieldvals):
     obj = result.scalars().all()
     return obj
 
-def query_one_obj(model, session=None, **fieldvals):
+def query_one_obj(session, model, **fieldvals):
     """Return the first result from query_as_obj."""
-    existing = query_as_obj(model, session, **fieldvals)
+    existing = query_as_obj(session, model, **fieldvals)
     if existing:
         return existing[0]
 
-def query_existing(entity, fields, session=None):
+def query_existing(session, entity, fields,):
     """Find the existing entry(ies) in the database matching the given fields
     on the given object.
     Example:
@@ -60,5 +60,5 @@ def query_existing(entity, fields, session=None):
             ## Ordinary attribute
             fieldvals[field] = getattr(entity, field)
 
-    result = query_as_obj(entity.__class__, session=session, **fieldvals)
+    result = query_as_obj(session, entity.__class__, **fieldvals)
     return result
