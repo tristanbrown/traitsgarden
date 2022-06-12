@@ -1,10 +1,12 @@
 from sqlalchemy import select
-from dash import dcc, html, callback, ctx
+from dash import dcc, html, callback, ctx, register_page
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
 from traitsgarden.db.connect import Session
 from traitsgarden.db.models import Plant, Seeds, Cultivar
 from traitsgarden.db.query import query_as_df, query_orm
+
+register_page(__name__, path='/traitsgarden/search')
 
 layout = html.Div([
     html.Div([

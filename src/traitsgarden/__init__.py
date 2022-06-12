@@ -1,16 +1,18 @@
 """Set up Flask app"""
 import os
-import dash
+from dash import Dash, html, dcc, page_container
 
 from traitsgarden.settings import Config
 from traitsgarden.db.connect import Session, connect_db
-from traitsgarden.pages import index
-
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
-app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+app = Dash(__name__, external_stylesheets=external_stylesheets, use_pages=True)
 server = app.server
 server.config.from_object(Config())
 
 ## Initial layout
-app.layout = index.layout
+app.layout = html.Div([
+    page_container,
+    html.Br(),
+    dcc.Link('Go Home', href='/traitsgarden'),
+])
