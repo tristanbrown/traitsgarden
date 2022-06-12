@@ -3,12 +3,7 @@ from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
 from traitsgarden.db.connect import Session
 from traitsgarden.db.models import Plant
-
-options = [
-    {"label": "New York City", "value": "NYC"},
-    {"label": "Montreal", "value": "MTL"},
-    {"label": "San Francisco", "value": "SF"},
-]
+from traitsgarden.db.query import query_as_df
 
 layout = html.Div([
     html.Div([
@@ -33,7 +28,28 @@ layout = html.Div([
 def update_options(search_value):
     if not search_value:
         search_value = ''
-    return [o for o in options if search_value in o["label"]]
+    query = f"""SELECT category
+        FROM cultivar
+        WHERE LOWER(category) LIKE LOWER('%%{search_value}%%')"""
+    result = query_as_df(query)
+    return list(result['category'].unique())
+
+@callback(
+    Output("name-dropdown", "options"),
+    Input("name-dropdown", "search_value"),
+    Input("category-dropdown", "value"),
+)
+def update_options(search_value, category):
+    if not search_value:
+        search_value = ''
+    query = f"""SELECT name
+        FROM cultivar
+        WHERE LOWER(name) LIKE LOWER('%%{search_value}%%')
+        """
+    if category:
+        query += f"""AND LOWER(category) = LOWER('{category}')"""
+    result = query_as_df(query)
+    return list(result['name'].unique())
 
 @callback(
     Output('dd-output-container', 'children'),
