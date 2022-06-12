@@ -14,6 +14,12 @@ def query_as_df(query):
         df = pd.read_sql(query, session.bind)
     return df
 
+def query_orm(session, stmt):
+    """Core of the ORM query."""
+    result = session.execute(stmt)
+    obj = result.scalars().all()
+    return obj
+
 def query_as_obj(session, model, **fieldvals):
     """Find the existing entry(ies) in the database, matching the fieldvals.
     Use '__' to match attributes on a child object.
@@ -34,9 +40,7 @@ def query_as_obj(session, model, **fieldvals):
 
     ## Run the query
     stmt = select(model).where(*conds)
-    result = session.execute(stmt)
-    obj = result.scalars().all()
-    return obj
+    return query_orm(session, stmt)
 
 def query_one_obj(session, model, **fieldvals):
     """Return the first result from query_as_obj."""
