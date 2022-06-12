@@ -167,7 +167,7 @@ class Plant(Base):
 
     @classmethod
     def get(cls, session, id):
-        return query_one_obj(cls, session, id=id)
+        return query_one_obj(session, cls, id=id)
 
     @classmethod
     def query(cls, session, name, category, plant_id):

@@ -3,7 +3,7 @@ from dash import dcc, html, callback
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
 from traitsgarden.db.connect import Session
-from traitsgarden.db.models import Plant, Seeds
+from traitsgarden.db.models import Plant, Seeds, Cultivar
 from traitsgarden.db.query import query_as_df, query_orm
 
 layout = html.Div([
@@ -29,11 +29,13 @@ layout = html.Div([
 def update_category(search_value):
     if not search_value:
         search_value = ''
-    query = f"""SELECT category
-        FROM cultivar
-        WHERE category ILIKE '%%{search_value}%%'"""
-    result = query_as_df(query)
-    return list(result['category'].unique())
+    stmt = select(Cultivar).where(
+        Cultivar.category.ilike(f'%{search_value}%')
+    )
+    with Session.begin() as session:
+        result = query_orm(session, stmt)
+        cats = {obj.category for obj in result}
+    return list(cats)
 
 @callback(
     Output("name-dropdown", "options"),
@@ -43,14 +45,15 @@ def update_category(search_value):
 def update_name(search_value, category):
     if not search_value:
         search_value = ''
-    query = f"""SELECT name
-        FROM cultivar
-        WHERE name ILIKE '%%{search_value}%%'
-        """
+    stmt = select(Cultivar).where(
+        Cultivar.name.ilike(f'%{search_value}%')
+    )
     if category:
-        query += f"""AND category ILIKE '{category}'"""
-    result = query_as_df(query)
-    return list(result['name'].unique())
+        stmt = stmt.where(Cultivar.category == category)
+    with Session.begin() as session:
+        result = query_orm(session, stmt)
+        names = {obj.name for obj in result}
+    return list(names)
 
 @callback(
     Output("seedsid-dropdown", "options"),
@@ -65,13 +68,9 @@ def update_seedsid(search_value, name, category):
         Seeds.pkt_id.ilike(f'{search_value}%')
     )
     if name:
-        stmt = stmt.where(
-            Seeds.name.ilike(name)
-        )
+        stmt = stmt.where(Seeds.name == name)
     if category:
-        stmt = stmt.where(
-            Seeds.category.ilike(category)
-        )
+        stmt = stmt.where(Seeds.category == category)
     with Session.begin() as session:
         result = query_orm(session, stmt)
         pkt_ids = {obj.pkt_id for obj in result}
