@@ -1,5 +1,5 @@
 from sqlalchemy import select
-from dash import dcc, html, callback, callback_context
+from dash import dcc, html, callback, ctx
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
 from traitsgarden.db.connect import Session
@@ -112,7 +112,6 @@ def update_plantid(search_value, name, category):
     Input("plantid-dropdown", "value"),
 )
 def seedsid_plantid_exclusive(seedsid, plantid):
-    ctx = callback_context
     trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
     if trigger_id == 'seedsid-dropdown':
         result = (seedsid, None)

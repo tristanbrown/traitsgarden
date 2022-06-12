@@ -9,7 +9,9 @@ REQUIREMENTS = [
     'sqlalchemy>=1.4.0',
     'alembic',
     'arrow',
-    'dash>=2.0.0',
+    'flask>=2.1.2',
+    'werkzeug>=2.1.2',
+    'dash>=2.5.0',
 ]
 
 setup(
