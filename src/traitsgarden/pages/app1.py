@@ -1,6 +1,8 @@
-from dash import dcc, html, callback
+from dash import dcc, html, callback, register_page
 from dash.dependencies import Input, Output
 from traitsgarden.db.connect import Session
+
+register_page(__name__, path="/test/app1")
 
 layout = html.Div([
     html.H3('App 1'),
