@@ -4,7 +4,7 @@ from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
 from traitsgarden.db.connect import Session
 from traitsgarden.db.models import Plant, Seeds, Cultivar
-from traitsgarden.db.query import query_as_df, query_orm
+from traitsgarden.db.query import query_orm
 
 register_page(__name__, path='/traitsgarden/search')
 
@@ -26,6 +26,12 @@ layout = html.Div([
         dcc.Dropdown(id="plantid-dropdown")
     ]),
     html.Div(id='dd-output-container'),
+    html.Br(),
+    dcc.Link(
+        html.Button('Search'),
+        id='search-link',
+        href='',
+        )
 ])
 
 @callback(
@@ -132,3 +138,17 @@ def seedsid_plantid_exclusive(seedsid, plantid):
 )
 def update_output(category, name, seedsid, plantid):
     return f'You have selected {category}, {name}, {seedsid}, {plantid}'
+
+@callback(
+    Output('search-link', 'href'),
+    Input('category-dropdown', 'value'),
+    Input('name-dropdown', 'value'),
+    Input('seedsid-dropdown', 'value'),
+    Input('plantid-dropdown', 'value'),
+)
+def search_go(category, name, seedsid, plantid):
+    with Session.begin() as session:
+        obj = Plant.query(session, name, category, plantid)
+        if obj:
+            return f"/traitsgarden/plant?id={obj.id}"
+    raise PreventUpdate
