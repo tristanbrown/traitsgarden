@@ -37,6 +37,10 @@ class Cultivar(Base):
         return f"<Cultivar: {self.name} - {self.category}>"
 
     @classmethod
+    def get(cls, session, id):
+        return query_one_obj(session, cls, id=id)
+
+    @classmethod
     def query(cls, session, name, category):
         return query_one_obj(session, cls, name=name, category=category)
 
@@ -82,6 +86,10 @@ class Seeds(Base):
 
     def __repr__(self, recursion=False):
         return f"<Seeds: {self.name} - {self.category} - {self.pkt_id}>"
+
+    @classmethod
+    def get(cls, session, id):
+        return query_one_obj(session, cls, id=id)
 
     @classmethod
     def query(cls, session, name, category, pkt_id):
@@ -137,6 +145,7 @@ class Plant(Base):
     )
     name = association_proxy('seeds', 'name')
     category = association_proxy('seeds', 'category')
+    cultivar = association_proxy('seeds', 'cultivar')
     individual = Column(Integer(), nullable=False, default=1)
     plant_id = column_property(
         select(Seeds.pkt_id

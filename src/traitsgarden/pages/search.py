@@ -148,7 +148,15 @@ def update_output(category, name, seedsid, plantid):
 )
 def search_go(category, name, seedsid, plantid):
     with Session.begin() as session:
-        obj = Plant.query(session, name, category, plantid)
+        if plantid:
+            obj = Plant.query(session, name, category, plantid)
+            itemtype = 'plant'
+        elif seedsid:
+            obj = Seeds.query(session, name, category, seedsid)
+            itemtype = 'seeds'
+        else:
+            obj = Cultivar.query(session, name, category)
+            itemtype = 'cultivar'
         if obj:
-            return f"/traitsgarden/plant?id={obj.id}"
+                return f"/traitsgarden/details?{itemtype}id={obj.id}"
     raise PreventUpdate
