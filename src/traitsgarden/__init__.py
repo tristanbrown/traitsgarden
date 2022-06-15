@@ -14,5 +14,7 @@ server.config.from_object(Config())
 app.layout = html.Div([
     page_container,
     html.Br(),
+    html.Div([
     dcc.Link('Go Home', href='/traitsgarden'),
+    dcc.Link('Search', href='/traitsgarden/search', style={'padding': 10}),])
 ])
