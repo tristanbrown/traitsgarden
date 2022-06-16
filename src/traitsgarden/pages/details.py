@@ -34,10 +34,52 @@ def resolve_display(session, cultivarid, seedsid, plantid):
     return section1, section2
 
 def display_cultivar(obj):
-    return f"{obj.__class__.__name__}: {str(obj)}"
+    layout = html.Div([
+        html.H2(obj.name),
+        html.H3(obj.category),
+        f"Species: {obj.species}",
+        html.Br(),
+        f"Hybrid: {obj.hybrid}",
+        html.Br(),
+        f"Description:",
+        html.Br(),
+        obj.description,
+    ])
+    return layout
 
 def display_seeds(obj):
-    return f"{obj.__class__.__name__}: {str(obj)}"
+    layout = html.Div([
+        html.H3("Seeds"),
+        f"ID: {obj.pkt_id}",
+        html.Br(),
+        f"Source: {obj.source}",
+        html.Br(),
+        f"Generation: {obj.generation}",
+        html.Br(),
+        f"Last Count: {obj.last_count}",
+        html.Br(),
+        f"Parents: {obj.mother}, {obj.father}",
+    ])
+    return layout
 
 def display_plant(obj):
-    return f"{obj.__class__.__name__}: {str(obj)}"
+    layout = html.Div([
+        html.H3("Plant"),
+        f"ID: {obj.plant_id}",
+        html.Br(),
+        f"Start Date: {obj.start_date}",
+        html.Br(),
+        f"Conditions: {obj.conditions}",
+        html.Br(),
+        f"Variant Notes:",
+        html.Br(),
+        obj.variant_notes,
+        html.Br(),
+        f"Height: {obj.height}",
+        html.Br(),
+        f"Fruit Description: {obj.fruit_desc}",
+        html.Br(),
+        f"Fruit Flavor: {obj.flavor}",
+        html.Br(),
+    ])
+    return layout
