@@ -10,12 +10,8 @@ register_page(__name__, path='/traitsgarden/search')
 
 layout = html.Div([
     html.Div([
-        "Category",
-        dcc.Dropdown(id="category-dropdown")
-    ]),
-    html.Div([
-        "Name",
-        dcc.Dropdown(id="name-dropdown")
+        "Cultivar",
+        dcc.Dropdown(id="cultivar-dropdown")
     ]),
     html.Div([
         "Seeds ID",
@@ -35,56 +31,39 @@ layout = html.Div([
 ])
 
 @callback(
-    Output("category-dropdown", "options"),
-    Input("category-dropdown", "search_value")
+    Output("cultivar-dropdown", "options"),
+    Input("cultivar-dropdown", "search_value"),
 )
-def update_category(search_value):
+def update_cultivar(search_value):
     if not search_value:
         search_value = ''
     stmt = select(Cultivar).where(
+        Cultivar.name.ilike(f'%{search_value}%') |\
         Cultivar.category.ilike(f'%{search_value}%')
     )
     with Session.begin() as session:
         result = query_orm(session, stmt)
-        cats = {obj.category for obj in result}
-    return list(cats)
-
-@callback(
-    Output("name-dropdown", "options"),
-    Input("name-dropdown", "search_value"),
-    Input("category-dropdown", "value"),
-)
-def update_name(search_value, category):
-    if not search_value:
-        search_value = ''
-    stmt = select(Cultivar).where(
-        Cultivar.name.ilike(f'%{search_value}%')
-    )
-    if category:
-        stmt = stmt.where(Cultivar.category == category)
-    with Session.begin() as session:
-        result = query_orm(session, stmt)
-        names = {obj.name for obj in result}
-    return list(names)
+        cultivars = {
+            f"{obj.category} | {obj.name}": f"{obj.name} ({obj.category})" for obj in result}
+    return cultivars
 
 @callback(
     Output("seedsid-dropdown", "options"),
     Input("seedsid-dropdown", "search_value"),
-    Input("name-dropdown", "value"),
-    Input("category-dropdown", "value"),
+    Input("cultivar-dropdown", "value"),
 )
-def update_seedsid(search_value, name, category):
-    if not name:
+def update_seedsid(search_value, cultivar):
+    if not cultivar:
         return []
     if not search_value:
         search_value = ''
     stmt = select(Seeds).where(
         Seeds.pkt_id.ilike(f'{search_value}%')
     )
-    if name:
-        stmt = stmt.where(Seeds.name == name)
-    if category:
-        stmt = stmt.where(Seeds.category == category)
+    if cultivar:
+        category, name = parse_cultivar(cultivar)
+        stmt = stmt.where(
+            Seeds.name == name, Seeds.category == category)
     with Session.begin() as session:
         result = query_orm(session, stmt)
         pkt_ids = {obj.pkt_id for obj in result}
@@ -93,21 +72,20 @@ def update_seedsid(search_value, name, category):
 @callback(
     Output("plantid-dropdown", "options"),
     Input("plantid-dropdown", "search_value"),
-    Input("name-dropdown", "value"),
-    Input("category-dropdown", "value"),
+    Input("cultivar-dropdown", "value"),
 )
-def update_plantid(search_value, name, category):
-    if not name:
+def update_plantid(search_value, cultivar):
+    if not cultivar:
         return []
     if not search_value:
         search_value = ''
     stmt = select(Plant).where(
         Plant.plant_id.ilike(f'{search_value}%')
     )
-    if name:
-        stmt = stmt.where(Plant.name == name)
-    if category:
-        stmt = stmt.where(Plant.category == category)
+    if cultivar:
+        category, name = parse_cultivar(cultivar)
+        stmt = stmt.where(
+            Plant.name == name, Plant.category == category)
     with Session.begin() as session:
         result = query_orm(session, stmt)
         plant_ids = {obj.plant_id for obj in result}
@@ -131,22 +109,22 @@ def seedsid_plantid_exclusive(seedsid, plantid):
 
 @callback(
     Output('dd-output-container', 'children'),
-    Input('category-dropdown', 'value'),
-    Input('name-dropdown', 'value'),
+    Input('cultivar-dropdown', 'value'),
     Input('seedsid-dropdown', 'value'),
     Input('plantid-dropdown', 'value'),
 )
-def update_output(category, name, seedsid, plantid):
+def update_output(cultivar, seedsid, plantid):
+    category, name = parse_cultivar(cultivar)
     return f'You have selected {category}, {name}, {seedsid}, {plantid}'
 
 @callback(
     Output('search-link', 'href'),
-    Input('category-dropdown', 'value'),
-    Input('name-dropdown', 'value'),
+    Input('cultivar-dropdown', 'value'),
     Input('seedsid-dropdown', 'value'),
     Input('plantid-dropdown', 'value'),
 )
-def search_go(category, name, seedsid, plantid):
+def search_go(cultivar, seedsid, plantid):
+    category, name = parse_cultivar(cultivar)
     with Session.begin() as session:
         if plantid:
             obj = Plant.query(session, name, category, plantid)
@@ -160,3 +138,10 @@ def search_go(category, name, seedsid, plantid):
         if obj:
                 return f"/traitsgarden/details?{itemtype}id={obj.id}"
     raise PreventUpdate
+
+def parse_cultivar(label):
+    try:
+        category, name = label.split(' | ')
+    except AttributeError:
+        category = name = None
+    return category, name
