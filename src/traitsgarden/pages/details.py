@@ -1,5 +1,5 @@
 from dash import dcc, html, callback, register_page
-from dash.dependencies import Input, Output
+from dash.dependencies import Input, Output, State, MATCH, ALL
 from traitsgarden.db.connect import Session
 from traitsgarden.db.models import Plant, Seeds, Cultivar
 
@@ -16,6 +16,9 @@ def layout(cultivarid=None, seedsid=None, plantid=None):
         section1,
         html.Br(),
         section2,
+        html.Br(),
+        html.Button('Save Changes', id='save-changes', n_clicks=0),
+        html.Div(id='save-status', children='-'),
     ])
 
 def resolve_display(session, cultivarid, seedsid, plantid):
@@ -75,7 +78,9 @@ def display_plant(obj):
         html.Br(),
         obj.variant_notes,
         html.Br(),
-        f"Height: {obj.height}",
+        "Height: ",
+        dcc.Input(id={'type': 'input-field', 'index': "height-input"},
+            type="number", placeholder=f"{obj.height}"),
         html.Br(),
         f"Fruit Description: {obj.fruit_desc}",
         html.Br(),
@@ -83,3 +88,14 @@ def display_plant(obj):
         html.Br(),
     ])
     return layout
+
+@callback(
+    Output('save-status', 'children'),
+    Input('save-changes', 'n_clicks'),
+    State({'type': 'input-field', 'index': ALL}, 'value'),
+    State({'type': 'input-field', 'index': ALL}, 'id'),
+    prevent_initial_call=True,
+)
+def save_changes(n_clicks, height, id):
+    changed = [f"{field['index']}, {val}" for field, val in zip(id, height)]
+    return f"Changes Saved: {changed}"

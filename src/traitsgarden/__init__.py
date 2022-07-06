@@ -9,6 +9,7 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 app = Dash(__name__, external_stylesheets=external_stylesheets, use_pages=True)
 server = app.server
 server.config.from_object(Config())
+app.config.suppress_callback_exceptions = True
 
 ## Initial layout
 app.layout = html.Div([
