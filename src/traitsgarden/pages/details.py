@@ -8,11 +8,17 @@ register_page(__name__, path='/traitsgarden/details')
 def layout(cultivarid=None, seedsid=None, plantid=None):
     if cultivarid == seedsid == plantid == None:
         return
+    ids = {
+        'cultivar': cultivarid,
+        'seeds': seedsid,
+        'plant': plantid,
+    }
     with Session.begin() as session:
         section1, section2 = resolve_display(
             session, cultivarid, seedsid, plantid
         )
     return html.Div([
+        dcc.Store(id='ids', data=ids),
         section1,
         html.Br(),
         section2,
@@ -79,8 +85,8 @@ def display_plant(obj):
         obj.variant_notes,
         html.Br(),
         "Height: ",
-        dcc.Input(id={'type': 'input-field', 'index': "height-input"},
-            type="number", placeholder=f"{obj.height}"),
+        dcc.Input(id={'type': 'input-field', 'index': "height"},
+            type="number", value=obj.height),
         html.Br(),
         f"Fruit Description: {obj.fruit_desc}",
         html.Br(),
@@ -92,10 +98,18 @@ def display_plant(obj):
 @callback(
     Output('save-status', 'children'),
     Input('save-changes', 'n_clicks'),
-    State({'type': 'input-field', 'index': ALL}, 'value'),
+    State('ids', 'data'),
     State({'type': 'input-field', 'index': ALL}, 'id'),
+    State({'type': 'input-field', 'index': ALL}, 'value'),
     prevent_initial_call=True,
 )
-def save_changes(n_clicks, height, id):
-    changed = [f"{field['index']}, {val}" for field, val in zip(id, height)]
-    return f"Changes Saved: {changed}"
+def save_changes(n_clicks, ids, fields, values):
+    form = {field['index']: val for field, val in zip(fields, values)}
+    updates = {}
+    with Session.begin() as session:
+        obj = Plant.get(session, ids['plant'])
+        for field, val in form.items():
+            if getattr(obj, field) != val:
+                setattr(obj, field, val)
+                updates[field] = val
+    return f"Changes Saved: {updates}"
