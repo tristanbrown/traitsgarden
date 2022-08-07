@@ -1,3 +1,6 @@
+from datetime import date
+import numpy as np
+import pandas as pd
 from dash import dcc, html, callback, register_page
 from dash.dependencies import Input, Output, State, MATCH, ALL
 from traitsgarden.db.connect import Session
@@ -76,7 +79,11 @@ def display_plant(obj):
         html.H3("Plant"),
         f"ID: {obj.plant_id}",
         html.Br(),
-        f"Start Date: {obj.start_date}",
+        f"Start Date: ",
+        dcc.DatePickerSingle(
+            id={'type': 'input-field', 'index': "start_date"},
+            date=obj.start_date,
+        ),
         html.Br(),
         f"Conditions: {obj.conditions}",
         html.Br(),
@@ -101,14 +108,22 @@ def display_plant(obj):
     State('ids', 'data'),
     State({'type': 'input-field', 'index': ALL}, 'id'),
     State({'type': 'input-field', 'index': ALL}, 'value'),
+    State({'type': 'input-field', 'index': ALL}, 'date'),
     prevent_initial_call=True,
 )
-def save_changes(n_clicks, ids, fields, values):
-    form = {field['index']: val for field, val in zip(fields, values)}
+def save_changes(n_clicks, ids, fields, values, dates):
+    fields = [field['index'] for field in fields]
+    form = pd.DataFrame(
+        zip(values, dates), index=fields,
+        columns=['values', 'dates'])
     updates = {}
     with Session.begin() as session:
         obj = Plant.get(session, ids['plant'])
-        for field, val in form.items():
+        for field, vals in form.iterrows():
+            if 'date' in field:
+                val = vals['dates']
+            else:
+                val = vals['values']
             if getattr(obj, field) != val:
                 setattr(obj, field, val)
                 updates[field] = val
