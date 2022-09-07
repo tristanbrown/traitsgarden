@@ -6,6 +6,7 @@ from dash_bootstrap_components._components.Container import Container
 
 from traitsgarden.settings import Config
 from traitsgarden.db.connect import Session, connect_db
+from traitsgarden.fragments.navbar import navbar
 
 external_stylesheets = [dbc.themes.COSMO]
 app = Dash(__name__, external_stylesheets=external_stylesheets, use_pages=True)
@@ -15,6 +16,7 @@ app.config.suppress_callback_exceptions = True
 
 ## Initial layout
 app.layout = Container(html.Div([
+    navbar,
     page_container,
     html.Br(),
     html.Div([
