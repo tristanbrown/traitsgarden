@@ -22,6 +22,20 @@ search_bar = dbc.Row([
     align="right",
 )
 
+search_col = dbc.Row([
+    dbc.Col(dcc.Dropdown(id="cultivar-dropdown", placeholder="Cultivar",), width=12),
+    dbc.Col(dcc.Dropdown(id="seedsid-dropdown", placeholder="Seeds ID",), width=12),
+    dbc.Col(dcc.Dropdown(id="plantid-dropdown", placeholder="Plant ID",), width=12),
+    dbc.Col(dcc.Link(
+        dbc.Button('Search', id='search-button', n_clicks=0),
+        id='search-link',
+        href='',
+        ))
+    ],
+    className="flex-grow-1 flex-wrap",
+    align="center",
+)
+
 @callback(
     Output("cultivar-dropdown", "options"),
     Input("cultivar-dropdown", "search_value"),
