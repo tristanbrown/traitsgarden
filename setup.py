@@ -12,6 +12,7 @@ REQUIREMENTS = [
     'flask>=2.1.2',
     'werkzeug>=2.1.2',
     'dash>=2.5.0',
+    'dash-bootstrap-components',
 ]
 
 setup(
