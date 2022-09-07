@@ -6,29 +6,21 @@ from traitsgarden.db.connect import Session
 from traitsgarden.db.models import Plant, Seeds, Cultivar
 from traitsgarden.db.query import query_orm
 
-register_page(__name__, path='/traitsgarden/search')
+import dash_bootstrap_components as dbc
 
-layout = html.Div([
-    html.Div([
-        "Cultivar",
-        dcc.Dropdown(id="cultivar-dropdown")
-    ]),
-    html.Div([
-        "Seeds ID",
-        dcc.Dropdown(id="seedsid-dropdown")
-    ]),
-    html.Div([
-        "Plant ID",
-        dcc.Dropdown(id="plantid-dropdown")
-    ]),
-    html.Div(id='dd-output-container'),
-    html.Br(),
-    dcc.Link(
-        html.Button('Search'),
+search_bar = dbc.Row([
+    dbc.Col(dcc.Dropdown(id="cultivar-dropdown", placeholder="Cultivar",), width=3),
+    dbc.Col(dcc.Dropdown(id="seedsid-dropdown", placeholder="Seeds ID",), width=3),
+    dbc.Col(dcc.Dropdown(id="plantid-dropdown", placeholder="Plant ID",), width=3),
+    dbc.Col(dcc.Link(
+        dbc.Button('Search'),
         id='search-link',
         href='',
-        )
-])
+        ))
+    ],
+    className="flex-grow-1 flex-wrap",
+    align="right",
+)
 
 @callback(
     Output("cultivar-dropdown", "options"),
