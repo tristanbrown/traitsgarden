@@ -23,13 +23,12 @@ PLOTLY_LOGO = "https://images.plot.ly/logo/new-branding/plotly-logomark.png"
 navbar = dbc.Navbar(
     # dbc.Container(
         [
-            dbc.Button("Open Offcanvas", id="open-offcanvas", n_clicks=0),
             html.A(
                 # Use row and col to control vertical alignment of logo / brand
                 dbc.Row(
                     [
                         dbc.Col(html.Img(src=PLOTLY_LOGO, height="30px")),
-                        dbc.Col(dbc.NavbarBrand("Navbar", className="ms-2")),
+                        dbc.Col(dbc.NavbarBrand("Traitsgarden", className="ms-2")),
                     ],
                     align="center",
                     className="g-0",
@@ -37,6 +36,7 @@ navbar = dbc.Navbar(
                 href="https://plotly.com",
                 style={"textDecoration": "none"},
             ),
+            dbc.Button("Search", id="open-offcanvas", n_clicks=0),
             dbc.NavbarToggler(id="navbar-toggler", n_clicks=0),
             dbc.Collapse(
                 # search_bar,
@@ -67,7 +67,7 @@ offcanvas = html.Div(
         dbc.Offcanvas(
             search_col,
             id="offcanvas",
-            title="Title",
+            title="Search",
             is_open=False,
         )
     ]
