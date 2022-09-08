@@ -19,8 +19,4 @@ app.layout = Container(html.Div([
     offcanvas,
     navbar,
     page_container,
-    html.Br(),
-    html.Div([
-    dcc.Link('Go Home', href='/traitsgarden'),
-    dcc.Link('Search', href='/traitsgarden/search', style={'padding': 10}),])
 ]), fluid=True)
