@@ -25,7 +25,13 @@ def layout(cultivarid=None, seedsid=None, plantid=None):
         html.Br(),
         section2,
         html.Br(),
-        html.Button('Save Changes', id='save-changes', n_clicks=0),
+        dbc.Row([
+            dbc.Col(dbc.Button('Save Changes', id='save-changes', n_clicks=0), width='auto'),
+            dbc.Col(dbc.Button('Delete', id='delete-entity', n_clicks=0), width='auto')
+        ],
+        align='center',
+        justify="start"
+        ),
         html.Div(id='save-status', children='-'),
     ])
 
@@ -46,7 +52,14 @@ def resolve_display(session, cultivarid, seedsid, plantid):
 
 def display_cultivar(obj):
     layout = html.Div([
-        html.H2(obj.name),
+        dbc.Row([
+            dbc.Col(html.H2(obj.name), width='auto'),
+            dbc.Col(dbc.Button('Add Cultivar', id='add-cultivar', n_clicks=0), width='auto'),
+        ],
+        # className="",
+        align='center',
+        justify="start"
+        ),
         html.H3(obj.category),
         f"Species: {obj.species}",
         html.Br(),
@@ -55,6 +68,16 @@ def display_cultivar(obj):
         f"Description:",
         html.Br(),
         obj.description,
+        html.Br(),
+        dbc.Row([
+            dbc.Col(dbc.Button('Add Seeds', id='add-seeds', n_clicks=0), width='auto'),
+            dbc.Col(dbc.Button('Add Plant', id='add-plant', n_clicks=0), width='auto')
+        ],
+        # className="",
+        align='center',
+        justify="start"
+        )
+
     ])
     return layout
 
