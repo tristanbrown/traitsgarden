@@ -6,11 +6,9 @@ register_page(__name__, path='/traitsgarden')
 
 layout = html.Div([
     html.H3('Traitsgarden'),
-    dcc.Link('Search', href='/traitsgarden/search'),
-    html.Br(),
     dcc.Link('Cultivars', href='/traitsgarden/cultivar'),
     html.Br(),
-    dcc.Link('Seeds', href='/traitsgarden/seeds'),
+    dcc.Link('Seeds', href='/traitsgarden/seedstable'),
     html.Br(),
-    dcc.Link('Plants', href='/traitsgarden/plants'),
+    dcc.Link('Plants', href='/traitsgarden/plantstable'),
 ])
