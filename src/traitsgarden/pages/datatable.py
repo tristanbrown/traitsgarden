@@ -43,7 +43,11 @@ class TableConfig():
 
     def __init__(self, name):
         self._data = pd.DataFrame()
-        if name == 'seeds':
+        if name == 'cultivar':
+            self.datafunc = get_cultivar_data
+            self.hidden = []
+            self.linkcols = ['name']
+        elif name == 'seeds':
             self.datafunc = get_seeds_data
             self.hidden = ['cultivar_id']
             self.linkcols = ['id', 'name']
@@ -77,4 +81,13 @@ def get_seeds_data():
     df = df.set_index(['id', 'cultivar_id']).reset_index()
     df['name'] = df.apply(lambda row: f"[{row['name']}](details?cultivarid={row['cultivar_id']})", axis=1)
     df['id'] = df.apply(lambda row: f"[{row['id']}](details?seedsid={row['id']})", axis=1)
+    return df
+
+def get_cultivar_data():
+    with Session.begin() as session:
+        query = """SELECT *
+            FROM cultivar
+            """
+        df = query_as_df(query)
+    df['name'] = df.apply(lambda row: f"[{row['name']}](details?cultivarid={row['id']})", axis=1)
     return df
