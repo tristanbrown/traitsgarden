@@ -51,6 +51,10 @@ class TableConfig():
             self.datafunc = get_seeds_data
             self.hidden = ['cultivar_id']
             self.linkcols = ['id', 'name']
+        elif name == 'plant':
+            self.datafunc = get_plant_data
+            self.hidden = ['cultivar_id']
+            self.linkcols = ['id', 'name']
         else:
             self.datafunc = None
             self.hidden = []
@@ -70,6 +74,15 @@ class TableConfig():
                 col['presentation'] = 'markdown'
         return cols
 
+def get_cultivar_data():
+    with Session.begin() as session:
+        query = """SELECT *
+            FROM cultivar
+            """
+        df = query_as_df(query)
+    df['name'] = df.apply(lambda row: f"[{row['name']}](details?cultivarid={row['id']})", axis=1)
+    return df
+
 def get_seeds_data():
     with Session.begin() as session:
         query = """SELECT b.name, b.category, a.*
@@ -83,11 +96,11 @@ def get_seeds_data():
     df['id'] = df.apply(lambda row: f"[{row['id']}](details?seedsid={row['id']})", axis=1)
     return df
 
-def get_cultivar_data():
+def get_plant_data():
     with Session.begin() as session:
         query = """SELECT *
-            FROM cultivar
+            FROM plant
             """
         df = query_as_df(query)
-    df['name'] = df.apply(lambda row: f"[{row['name']}](details?cultivarid={row['id']})", axis=1)
+    df['id'] = df.apply(lambda row: f"[{row['id']}](details?plantid={row['id']})", axis=1)
     return df
