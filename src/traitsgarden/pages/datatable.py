@@ -1,3 +1,4 @@
+import pandas as pd
 from datetime import date
 from dash import dcc, html, callback, register_page, dash_table
 from dash.dependencies import Input, Output, State, MATCH, ALL
@@ -9,18 +10,14 @@ from traitsgarden.db.models import Plant, Seeds, Cultivar
 register_page(__name__, path='/traitsgarden/table')
 
 def layout(name=None):
-    if name == 'seeds':
-        default_hidden = ['cultivar_id']
-    else:
-        default_hidden = []
-
+    table = TableConfig(name)
     return html.Div([
         dcc.Store(id='table-name', data=name),
         html.Br(),
         dash_table.DataTable(
             id='data-table',
             editable=True,
-            hidden_columns=default_hidden,
+            hidden_columns=table.hidden,
             filter_action='native',
             filter_options={'case': 'insensitive'},
             sort_action='native',
@@ -36,23 +33,38 @@ def layout(name=None):
     State('table-name', 'data'),
     )
 def update_content(timestamp, rows, tablename):
-    if tablename == 'seeds':
-        df = get_seeds_data()
-        linkcols = ['id', 'name']
-    else:
-        df = None
-        linkcols = []
-
-    if df is None:
-        return [{}], []
-    cols = [{"name": i, "id": i, 'hideable': True} for i in df.columns]
-    for col in cols:
-        if col['name'] in linkcols:
-            col['presentation'] = 'markdown'
+    table = TableConfig(tablename)
     return (
-        df.to_dict('records'),
-        cols
+        table.data.to_dict('records'),
+        table.columns
     )
+
+class TableConfig():
+
+    def __init__(self, name):
+        self._data = pd.DataFrame()
+        if name == 'seeds':
+            self.datafunc = get_seeds_data
+            self.hidden = ['cultivar_id']
+            self.linkcols = ['id', 'name']
+        else:
+            self.datafunc = None
+            self.hidden = []
+            self.linkcols = []
+
+    @property
+    def data(self):
+        if (self._data.empty) and (self.datafunc is not None):
+            self._data = self.datafunc()
+        return self._data
+
+    @property
+    def columns(self):
+        cols = [{"name": i, "id": i, 'hideable': True} for i in self.data.columns]
+        for col in cols:
+            if col['name'] in self.linkcols:
+                col['presentation'] = 'markdown'
+        return cols
 
 def get_seeds_data():
     with Session.begin() as session:
