@@ -6,15 +6,21 @@ from traitsgarden.db.connect import Session
 from traitsgarden.db.query import query_as_df
 from traitsgarden.db.models import Plant, Seeds, Cultivar
 
-register_page(__name__, path='/traitsgarden/seedstable')
+register_page(__name__, path='/traitsgarden/table')
 
-def layout(**kwargs):
+def layout(name=None):
+    if name == 'seeds':
+        default_hidden = ['cultivar_id']
+    else:
+        default_hidden = []
+
     return html.Div([
+        dcc.Store(id='table-name', data=name),
         html.Br(),
         dash_table.DataTable(
-            id='seeds-table',
+            id='data-table',
             editable=True,
-            hidden_columns=['cultivar_id'],
+            hidden_columns=default_hidden,
             filter_action='native',
             filter_options={'case': 'insensitive'},
             sort_action='native',
@@ -23,18 +29,25 @@ def layout(**kwargs):
     ])
 
 @callback(
-    Output('seeds-table', 'data'),
-    Output('seeds-table', 'columns'),
-    Input('seeds-table', 'data_timestamp'),
-    State('seeds-table', 'data'))
-def update_content(timestamp, rows):
-    df = get_seeds_data()
+    Output('data-table', 'data'),
+    Output('data-table', 'columns'),
+    Input('data-table', 'data_timestamp'),
+    State('data-table', 'data'),
+    State('table-name', 'data'),
+    )
+def update_content(timestamp, rows, tablename):
+    if tablename == 'seeds':
+        df = get_seeds_data()
+        linkcols = ['id', 'name']
+    else:
+        df = None
+        linkcols = []
 
     if df is None:
         return [{}], []
     cols = [{"name": i, "id": i, 'hideable': True} for i in df.columns]
     for col in cols:
-        if col['name'] in ['id', 'name']:
+        if col['name'] in linkcols:
             col['presentation'] = 'markdown'
     return (
         df.to_dict('records'),
