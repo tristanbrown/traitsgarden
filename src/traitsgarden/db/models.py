@@ -165,7 +165,7 @@ class Plant(Base):
     fruit_desc = Column(String())
     flavor = Column(String())
     variant_notes = Column(String())
-    done = Column(Boolean(), default=False)
+    active = Column(Boolean(), default=False)
 
     __table_args__ = (
         UniqueConstraint('seeds_id', 'individual', name='_plant_id_uc'),
