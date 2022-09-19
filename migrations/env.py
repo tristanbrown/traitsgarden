@@ -1,3 +1,4 @@
+import os
 import logging
 from logging.config import fileConfig
 import re
@@ -6,6 +7,7 @@ from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
 from alembic import context
+from traitsgarden.db.connect import Base
 
 USE_TWOPHASE = False
 
@@ -24,6 +26,12 @@ logger = logging.getLogger("alembic.env")
 # in the sample .ini file.
 db_names = config.get_main_option("databases")
 
+db_name = config.config_ini_section # active config ini section is the db name that we have chosen
+config.set_main_option(
+    "sqlalchemy.url",
+    f"postgresql://postgres:{os.getenv('POSTGRES_PASSWORD')}@postgres/{db_name}"
+)
+
 # add your model's MetaData objects here
 # for 'autogenerate' support.  These must be set
 # up to hold just those tables targeting a
@@ -35,7 +43,7 @@ db_names = config.get_main_option("databases")
 #       'engine1':mymodel.metadata1,
 #       'engine2':mymodel.metadata2
 # }
-target_metadata = {}
+target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
@@ -86,52 +94,34 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
+    connectable = engine_from_config(
+        config.get_section(config.config_ini_section),
+        prefix="sqlalchemy.",
+        poolclass=pool.NullPool,
+    )
 
-    # for the direct-to-DB use case, start a transaction on all
-    # engines, then run all migrations, then commit all transactions.
+    def include_object(object, name, type_, reflected, compare_to):
+        if type_ == 'foreign_key_constraint' and compare_to and (
+                compare_to.elements[0].target_fullname == db_name + '.' +
+                object.elements[0].target_fullname or
+                db_name + '.' + compare_to.elements[0].target_fullname == object.elements[
+                    0].target_fullname):
+            return False
+        if type_ == 'table':
+            if object.schema == db_name or object.schema is None:
+                return True
+        elif object.table.schema == db_name or object.table.schema is None:
+            return True
+        else:
+            return False
 
-    engines = {}
-    for name in re.split(r",\s*", db_names):
-        engines[name] = rec = {}
-        rec["engine"] = engine_from_config(
-            context.config.get_section(name),
-            prefix="sqlalchemy.",
-            poolclass=pool.NullPool,
+    with connectable.connect() as connection:
+        context.configure(
+            connection=connection, target_metadata=target_metadata, include_object=include_object
         )
 
-    for name, rec in engines.items():
-        engine = rec["engine"]
-        rec["connection"] = conn = engine.connect()
-
-        if USE_TWOPHASE:
-            rec["transaction"] = conn.begin_twophase()
-        else:
-            rec["transaction"] = conn.begin()
-
-    try:
-        for name, rec in engines.items():
-            logger.info("Migrating database %s" % name)
-            context.configure(
-                connection=rec["connection"],
-                upgrade_token="%s_upgrades" % name,
-                downgrade_token="%s_downgrades" % name,
-                target_metadata=target_metadata.get(name),
-            )
-            context.run_migrations(engine_name=name)
-
-        if USE_TWOPHASE:
-            for rec in engines.values():
-                rec["transaction"].prepare()
-
-        for rec in engines.values():
-            rec["transaction"].commit()
-    except:
-        for rec in engines.values():
-            rec["transaction"].rollback()
-        raise
-    finally:
-        for rec in engines.values():
-            rec["connection"].close()
+        with context.begin_transaction():
+            context.run_migrations()
 
 
 if context.is_offline_mode():
