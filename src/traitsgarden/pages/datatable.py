@@ -98,7 +98,7 @@ def get_seeds_data():
 
 def get_plant_data():
     with Session.begin() as session:
-        query = """SELECT c.name, c.category, b.year, b.variant, a.*
+        query = """SELECT c.name, c.category, b.pkt_id, a.*
         FROM plant a
         JOIN seeds b
         ON a.seeds_id = b.id

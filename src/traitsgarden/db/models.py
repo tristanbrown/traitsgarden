@@ -62,13 +62,11 @@ class Seeds(Base):
     cultivar = relationship("Cultivar")
     name = association_proxy('cultivar', 'name')
     category = association_proxy('cultivar', 'category')
+    pkt_id = Column(String(length=4), nullable=False)
     year = Column(Integer(), nullable=False)
-    variant = Column(String(length=2), nullable=False)
-    pkt_id = column_property(
-        func.substr(cast(year, String), 3, 5) + variant)
 
     __table_args__ = (
-        UniqueConstraint('cultivar_id', 'year', 'variant', name='_seeds_uc'),
+        UniqueConstraint('cultivar_id', 'pkt_id', name='_seeds_uc'),
                      )
 
     ## Parent/Child Relationships
@@ -146,12 +144,7 @@ class Plant(Base):
     name = association_proxy('seeds', 'name')
     category = association_proxy('seeds', 'category')
     cultivar = association_proxy('seeds', 'cultivar')
-    individual = Column(Integer(), nullable=False, default=1)
-    plant_id = column_property(
-        select(Seeds.pkt_id
-            ).where(Seeds.id == seeds_id
-            ).scalar_subquery() \
-            + func.lpad(cast(individual, String), 2, '0'))
+    plant_id = Column(String(length=6), nullable=False)
 
     ## Plant Data
     start_date = Column(Date())
@@ -168,7 +161,7 @@ class Plant(Base):
     active = Column(Boolean(), default=False)
 
     __table_args__ = (
-        UniqueConstraint('seeds_id', 'individual', name='_plant_id_uc'),
+        UniqueConstraint('plant_id', name='_plant_id_uc'),
                      )
 
     def __repr__(self, recursion=False):
