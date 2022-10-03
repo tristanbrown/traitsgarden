@@ -50,11 +50,11 @@ class TableConfig():
         elif name == 'seeds':
             self.datafunc = get_seeds_data
             self.hidden = ['cultivar_id']
-            self.linkcols = ['id', 'name']
+            self.linkcols = ['name', 'pkt_id']
         elif name == 'plant':
             self.datafunc = get_plant_data
-            self.hidden = ['cultivar_id']
-            self.linkcols = ['id', 'name']
+            self.hidden = ['cultivar_id', 'seeds_id']
+            self.linkcols = ['name', 'pkt_id', 'plant_id']
         else:
             self.datafunc = None
             self.hidden = []
@@ -75,39 +75,19 @@ class TableConfig():
         return cols
 
 def get_cultivar_data():
-    with Session.begin() as session:
-        query = """SELECT *
-            FROM cultivar
-            """
-        df = query_as_df(query)
+    df = Cultivar.table().reset_index()
     df['name'] = df.apply(lambda row: f"[{row['name']}](details?cultivarid={row['id']})", axis=1)
     return df
 
 def get_seeds_data():
-    with Session.begin() as session:
-        query = """SELECT b.name, b.category, a.*
-            FROM seeds a
-            JOIN cultivar b
-            ON a.cultivar_id = b.id
-            """
-        df = query_as_df(query)
-    df = df.set_index(['id', 'cultivar_id']).reset_index()
-    df['id'] = df.apply(lambda row: f"[{row['id']}](details?seedsid={row['id']})", axis=1)
+    df = Seeds.table().reset_index()
     df['name'] = df.apply(lambda row: f"[{row['name']}](details?cultivarid={row['cultivar_id']})", axis=1)
+    df['pkt_id'] = df.apply(lambda row: f"[{row['pkt_id']}](details?seedsid={row['id']})", axis=1)
     return df
 
 def get_plant_data():
-    with Session.begin() as session:
-        query = """SELECT c.name, c.category, b.pkt_id, a.*
-        FROM plant a
-        JOIN seeds b
-        ON a.seeds_id = b.id
-        JOIN cultivar c
-        ON b.cultivar_id = c.id
-        """
-        df = query_as_df(query)
-    df = df.set_index(['id', 'seeds_id']).reset_index()
-    df['id'] = df.apply(lambda row: f"[{row['id']}](details?plantid={row['id']})", axis=1)
-    # df['name'] = df.apply(lambda row: f"[{row['name']}](details?cultivarid={row['cultivar_id']})", axis=1)
-    # df['variant'] = df.apply(lambda row: f"[{row['variant']}](details?seedsid={row['seeds_id']})", axis=1)
+    df = Plant.table().reset_index()
+    df['name'] = df.apply(lambda row: f"[{row['name']}](details?cultivarid={row['cultivar_id']})", axis=1)
+    df['pkt_id'] = df.apply(lambda row: f"[{row['pkt_id']}](details?seedsid={row['seeds_id']})", axis=1)
+    df['plant_id'] = df.apply(lambda row: f"[{row['plant_id']}](details?plantid={row['id']})", axis=1)
     return df

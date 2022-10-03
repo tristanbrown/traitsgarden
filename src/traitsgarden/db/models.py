@@ -13,7 +13,7 @@ from sqlalchemy.orm import validates, relationship, column_property, close_all_s
 from sqlalchemy.ext.associationproxy import association_proxy
 
 from traitsgarden.db.connect import Base, Session
-from traitsgarden.db.query import query_existing, query_one_obj
+from traitsgarden.db.query import query_existing, query_one_obj, query_as_df
 from traitsgarden.db import util
 
 class Cultivar(Base):
@@ -52,6 +52,13 @@ class Cultivar(Base):
 
     def delete(self, session):
         session.delete(self)
+
+    @staticmethod
+    def table():
+        query = """SELECT *
+            FROM cultivar
+            """
+        return query_as_df(query).set_index('id').sort_index()
 
 class Seeds(Base):
     __tablename__ = 'seeds'
@@ -106,6 +113,18 @@ class Seeds(Base):
 
     def delete(self, session):
         session.delete(self)
+
+    @staticmethod
+    def table():
+        query = """SELECT b.name, b.category, a.*
+            FROM seeds a
+            JOIN cultivar b
+            ON a.cultivar_id = b.id
+            """
+        df = query_as_df(query)
+        df = df.set_index(
+            ['id', 'cultivar_id', 'category', 'name', 'pkt_id']).reset_index()
+        return df.set_index('id').sort_index()
 
     def add_parent(self, session, plant_id, parent=None, name=None, category=None):
         """Defaults to the same name/category,
@@ -185,6 +204,21 @@ class Plant(Base):
         obj = cls(seeds=seedparent, individual=individual, **kwargs)
         session.add(obj)
         return obj
+
+    @staticmethod
+    def table():
+        query = """SELECT b.cultivar_id, c.name, c.category, b.pkt_id, a.*
+            FROM plant a
+            JOIN seeds b
+            ON a.seeds_id = b.id
+            JOIN cultivar c
+            ON b.cultivar_id = c.id
+            """
+        df = query_as_df(query)
+        df = df.set_index(
+            ['id', 'cultivar_id', 'category', 'name', 'seeds_id', 'pkt_id', 'plant_id']
+        ).reset_index()
+        return df.set_index('id').sort_index()
 
     @validates('height')
     def validate_height(self, key, height):
