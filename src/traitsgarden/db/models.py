@@ -4,11 +4,12 @@ import numpy as np
 import pandas as pd
 
 from sqlalchemy import (Column, ForeignKey, asc, desc, Computed, UniqueConstraint,
-    ForeignKeyConstraint, cast, func, select
+    ForeignKeyConstraint, cast, func, select, inspect
 )
 from sqlalchemy.types import (Integer, TIMESTAMP, Numeric, String, Date,
     Boolean
 )
+from sqlalchemy.sql import sqltypes
 from sqlalchemy.orm import validates, relationship, column_property, close_all_sessions
 from sqlalchemy.ext.associationproxy import association_proxy
 
@@ -24,6 +25,21 @@ class DBObjMixin():
 
     def delete(self, session):
         session.delete(self)
+
+    @classmethod
+    def columns(cls):
+        return inspect(Plant).c
+
+    @classmethod
+    def types(cls):
+        coldata = [[col.name, col.type] for col in cls.columns()]
+        return pd.DataFrame(coldata, columns=['name', 'type'])
+
+    @classmethod
+    def datecols(cls):
+        coltypes = cls.types()
+        datetypes = coltypes[coltypes['type'].apply(isinstance, args=[sqltypes.Date])]
+        return list(datetypes['name'])
 
 class Cultivar(DBObjMixin, Base):
     __tablename__ = 'cultivar'
@@ -196,8 +212,8 @@ class Plant(DBObjMixin, Base):
         session.add(obj)
         return obj
 
-    @staticmethod
-    def table():
+    @classmethod
+    def table(cls):
         query = """SELECT b.cultivar_id, c.name, c.category, b.pkt_id, a.*
             FROM plant a
             JOIN seeds b
@@ -205,7 +221,7 @@ class Plant(DBObjMixin, Base):
             JOIN cultivar c
             ON b.cultivar_id = c.id
             """
-        df = query_as_df(query)
+        df = query_as_df(query, cls.datecols())
         df = df.set_index(
             ['id', 'cultivar_id', 'category', 'name', 'seeds_id', 'pkt_id', 'plant_id']
         ).reset_index()

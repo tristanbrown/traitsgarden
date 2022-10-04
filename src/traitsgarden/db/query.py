@@ -5,13 +5,13 @@ from sqlalchemy import select
 
 from traitsgarden.db.connect import Session
 
-def query_as_df(query):
+def query_as_df(query, datecols=None):
     """Query the table as a dataframe.
 
     The query can be a SQL SELECT statement, or a table name.
     """
     with Session() as session:
-        df = pd.read_sql(query, session.bind)
+        df = pd.read_sql(query, session.bind, parse_dates=datecols)
     return df
 
 def query_orm(session, stmt):
