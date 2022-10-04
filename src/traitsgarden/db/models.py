@@ -221,7 +221,10 @@ class Plant(DBObjMixin, Base):
             JOIN cultivar c
             ON b.cultivar_id = c.id
             """
-        df = query_as_df(query, cls.datecols())
+        datecols = cls.datecols()
+        df = query_as_df(query, datecols)
+        for col in datecols:
+            df[col] = df[col].dt.date
         df = df.set_index(
             ['id', 'cultivar_id', 'category', 'name', 'seeds_id', 'pkt_id', 'plant_id']
         ).reset_index()
