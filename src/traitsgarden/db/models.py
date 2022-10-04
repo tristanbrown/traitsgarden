@@ -16,7 +16,16 @@ from traitsgarden.db.connect import Base, Session
 from traitsgarden.db.query import query_existing, query_one_obj, query_as_df
 from traitsgarden.db import util
 
-class Cultivar(Base):
+class DBObjMixin():
+
+    @classmethod
+    def get(cls, session, id):
+        return query_one_obj(session, cls, id=id)
+
+    def delete(self, session):
+        session.delete(self)
+
+class Cultivar(DBObjMixin, Base):
     __tablename__ = 'cultivar'
 
     ## ID Fields
@@ -37,10 +46,6 @@ class Cultivar(Base):
         return f"<Cultivar: {self.name} - {self.category}>"
 
     @classmethod
-    def get(cls, session, id):
-        return query_one_obj(session, cls, id=id)
-
-    @classmethod
     def query(cls, session, name, category):
         return query_one_obj(session, cls, name=name, category=category)
 
@@ -50,9 +55,6 @@ class Cultivar(Base):
         session.add(obj)
         return obj
 
-    def delete(self, session):
-        session.delete(self)
-
     @staticmethod
     def table():
         query = """SELECT *
@@ -60,7 +62,7 @@ class Cultivar(Base):
             """
         return query_as_df(query).set_index('id').sort_index()
 
-class Seeds(Base):
+class Seeds(DBObjMixin, Base):
     __tablename__ = 'seeds'
 
     ## ID Fields
@@ -93,10 +95,6 @@ class Seeds(Base):
         return f"<Seeds: {self.name} - {self.category} - {self.pkt_id}>"
 
     @classmethod
-    def get(cls, session, id):
-        return query_one_obj(session, cls, id=id)
-
-    @classmethod
     def query(cls, session, name, category, pkt_id):
         return query_one_obj(session, cls, name=name, category=category, pkt_id=pkt_id)
 
@@ -110,9 +108,6 @@ class Seeds(Base):
         obj = cls(cultivar=cultivar, year=year, variant=variant, **kwargs)
         session.add(obj)
         return obj
-
-    def delete(self, session):
-        session.delete(self)
 
     @staticmethod
     def table():
@@ -147,7 +142,7 @@ class Seeds(Base):
         else:
             setattr(self, parent, parent_obj)
 
-class Plant(Base):
+class Plant(DBObjMixin, Base):
     __tablename__ = 'plant'
 
     ## ID Fields
@@ -185,10 +180,6 @@ class Plant(Base):
 
     def __repr__(self, recursion=False):
         return f"<Plant: {self.name} - {self.category} - {self.plant_id}>"
-
-    @classmethod
-    def get(cls, session, id):
-        return query_one_obj(session, cls, id=id)
 
     @classmethod
     def query(cls, session, name, category, plant_id):
