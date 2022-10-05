@@ -10,7 +10,7 @@ from traitsgarden.db.models import Plant, Seeds, Cultivar
 register_page(__name__, path='/traitsgarden/table')
 
 def layout(name=None):
-    table = TableConfig(name)
+    table = select_table(name)
     return html.Div([
         dcc.Store(id='table-name', data=name),
         html.Br(),
@@ -33,38 +33,29 @@ def layout(name=None):
     State('table-name', 'data'),
     )
 def update_content(timestamp, rows, tablename):
-    table = TableConfig(tablename)
+    table = select_table(tablename)
     return (
         table.data.to_dict('records'),
         table.columns
     )
 
-class TableConfig():
+def select_table(name):
+    selector = {
+        'cultivar': TableCultivar,
+        'seeds': TableSeeds,
+        'plant': TablePlant,
+    }
+    return selector.get(name, TableBase)()
 
-    def __init__(self, name):
-        self._data = pd.DataFrame()
-        if name == 'cultivar':
-            self.datafunc = get_cultivar_data
-            self.hidden = []
-            self.linkcols = ['name']
-        elif name == 'seeds':
-            self.datafunc = get_seeds_data
-            self.hidden = ['cultivar_id']
-            self.linkcols = ['name', 'pkt_id']
-        elif name == 'plant':
-            self.datafunc = get_plant_data
-            self.hidden = ['cultivar_id', 'seeds_id']
-            self.linkcols = ['name', 'pkt_id', 'plant_id']
-        else:
-            self.datafunc = None
-            self.hidden = []
-            self.linkcols = []
+class TableBase():
 
-    @property
-    def data(self):
-        if (self._data.empty) and (self.datafunc is not None):
-            self._data = self.datafunc()
-        return self._data
+    def __init__(self):
+        self.data = self.get_data()
+        self.hidden = []
+        self.linkcols = []
+
+    def get_data(self):
+        return pd.DataFrame()
 
     @property
     def columns(self):
@@ -74,20 +65,41 @@ class TableConfig():
                 col['presentation'] = 'markdown'
         return cols
 
-def get_cultivar_data():
-    df = Cultivar.table().reset_index()
-    df['name'] = df.apply(lambda row: f"[{row['name']}](details?cultivarid={row['id']})", axis=1)
-    return df
+class TableCultivar(TableBase):
 
-def get_seeds_data():
-    df = Seeds.table().reset_index()
-    df['name'] = df.apply(lambda row: f"[{row['name']}](details?cultivarid={row['cultivar_id']})", axis=1)
-    df['pkt_id'] = df.apply(lambda row: f"[{row['pkt_id']}](details?seedsid={row['id']})", axis=1)
-    return df
+    def __init__(self):
+        super().__init__()
+        self.hidden = []
+        self.linkcols = ['name']
 
-def get_plant_data():
-    df = Plant.table().reset_index()
-    df['name'] = df.apply(lambda row: f"[{row['name']}](details?cultivarid={row['cultivar_id']})", axis=1)
-    df['pkt_id'] = df.apply(lambda row: f"[{row['pkt_id']}](details?seedsid={row['seeds_id']})", axis=1)
-    df['plant_id'] = df.apply(lambda row: f"[{row['plant_id']}](details?plantid={row['id']})", axis=1)
-    return df
+    def get_data(self):
+        df = Cultivar.table().reset_index()
+        df['name'] = df.apply(lambda row: f"[{row['name']}](details?cultivarid={row['id']})", axis=1)
+        return df
+
+class TableSeeds(TableBase):
+
+    def __init__(self):
+        super().__init__()
+        self.hidden = ['cultivar_id']
+        self.linkcols = ['name', 'pkt_id']
+
+    def get_data(self):
+        df = Seeds.table().reset_index()
+        df['name'] = df.apply(lambda row: f"[{row['name']}](details?cultivarid={row['cultivar_id']})", axis=1)
+        df['pkt_id'] = df.apply(lambda row: f"[{row['pkt_id']}](details?seedsid={row['id']})", axis=1)
+        return df
+
+class TablePlant(TableBase):
+
+    def __init__(self):
+        super().__init__()
+        self.hidden = ['cultivar_id', 'seeds_id']
+        self.linkcols = ['name', 'pkt_id', 'plant_id']
+
+    def get_data(self):
+        df = Plant.table().reset_index()
+        df['name'] = df.apply(lambda row: f"[{row['name']}](details?cultivarid={row['cultivar_id']})", axis=1)
+        df['pkt_id'] = df.apply(lambda row: f"[{row['pkt_id']}](details?seedsid={row['seeds_id']})", axis=1)
+        df['plant_id'] = df.apply(lambda row: f"[{row['plant_id']}](details?plantid={row['id']})", axis=1)
+        return df
