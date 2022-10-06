@@ -49,8 +49,16 @@ def select_table(name):
 
 class TableBase():
 
+    typemap = {
+        int: 'numeric',
+        float: 'numeric',
+        'object': 'text',
+        bool: 'any',
+        'datetime64[ns]': 'datetime',
+    }
+
     def __init__(self):
-        self.data = self.get_data()
+        self.data = self.get_data().fillna('')
         self.hidden = []
         self.linkcols = []
 
@@ -59,7 +67,9 @@ class TableBase():
 
     @property
     def columns(self):
-        cols = [{"name": i, "id": i, 'hideable': True} for i in self.data.columns]
+        coltypes = self.data.dtypes.replace(self.typemap)
+        cols = [{"name": i, "id": i, 'type': coltypes.loc[i],
+            'hideable': True} for i in self.data.columns]
         for col in cols:
             if col['name'] in self.linkcols:
                 col['presentation'] = 'markdown'
