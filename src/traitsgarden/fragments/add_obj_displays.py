@@ -12,7 +12,10 @@ cultivar_add_display = dbc.Modal([
             dbc.Row(dbc.Col(dbc.Input(id="add-cultivar-input", placeholder='Cultivar Name'))),
             dbc.Row(dbc.Col(dcc.Dropdown(id="add-category-dropdown", placeholder="Category",)))
             ]),
-        dbc.ModalFooter(dbc.Button("Save", id="save-new-cultivar")),
+        dbc.ModalFooter([
+                dcc.Location(id='add-cultivar-link', refresh=True),
+                dbc.Button("Save", id="save-new-cultivar"),
+                ])
     ], id="add-cultivar-modal")
 
 @callback(
@@ -44,3 +47,21 @@ def update_category_dropdown(search_value, input_value):
     if input_value:  ## Keep the input after selected
         options = [input_value] + options
     return options
+
+@callback(
+    Output('add-category-dropdown', 'value'),
+    Output('add-cultivar-input', 'value'),
+    Output('add-cultivar-link', 'href'),
+    Input('save-new-cultivar', 'n_clicks'),
+    State('add-cultivar-input', 'value'),
+    State('add-category-dropdown', 'value'),
+    prevent_initial_call=True,
+)
+def save_changes(n_clicks, cultivar_name, category):
+    with Session.begin() as session:
+        obj = Cultivar.add(session, cultivar_name, category)
+    with Session.begin() as session:
+        obj = Cultivar.query(session, cultivar_name, category)
+        if obj:
+            return None, None, f"/traitsgarden/details?cultivarid={obj.id}"
+    return None, None, ''
