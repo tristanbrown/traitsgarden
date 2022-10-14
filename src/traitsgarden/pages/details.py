@@ -5,6 +5,7 @@ import dash_bootstrap_components as dbc
 from traitsgarden.db.connect import Session
 from traitsgarden.db.models import Plant, Seeds, Cultivar
 from traitsgarden.fragments.add_cultivar_display import cultivar_add_display
+from traitsgarden.fragments.add_seeds_display import seeds_add_display
 from traitsgarden.fragments.delete_obj import del_display
 
 register_page(__name__, path='/traitsgarden/details')
@@ -78,8 +79,12 @@ def display_cultivar(obj):
         obj.description,
         html.Br(),
         dbc.Row([
-            dbc.Col(dbc.Button('Add Seeds', id='add-seeds', n_clicks=0), width='auto'),
-            dbc.Col(dbc.Button('Add Plant', id='add-plant', n_clicks=0), width='auto')
+            dbc.Col([
+                dbc.Button('Add Seeds', id='add-seeds', n_clicks=0),
+                seeds_add_display], width='auto'),
+            dbc.Col([
+                dbc.Button('Add Plant', id='add-plant', n_clicks=0),
+                ], width='auto')
         ],
         align='center',
         justify="start"
