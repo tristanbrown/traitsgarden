@@ -10,8 +10,8 @@ from traitsgarden.fragments.shared import dropdown_options_input
 seeds_add_display = dbc.Modal([
         dbc.ModalHeader(dbc.ModalTitle("Add Seeds")),
         dbc.ModalBody([
-            dbc.Row(dbc.Col(dbc.Input(id="add-seeds-input", placeholder='Seeds Name'))),
-            dbc.Row(dbc.Col(dcc.Dropdown(id="add-seeds-cultivar", placeholder="Cultivar",)))
+            dbc.Row(dbc.Col(dcc.Dropdown(id="add-seeds-cultivar", placeholder="Cultivar",))),
+            dbc.Row(dbc.Col(dbc.Input(id="add-seeds-input", placeholder='Seeds ID (optional)')))
             ]),
         dbc.ModalFooter([
                 dcc.Location(id='add-seeds-link', refresh=True),
@@ -29,19 +29,20 @@ def toggle_addseeds_modal(n_open, n_close, is_open):
         return not is_open
     return is_open
 
-# @callback(
-#     Output("add-seeds-cultivar", "options"),
-#     Input("add-seeds-cultivar", "search_value"),
-#     Input("add-seeds-cultivar", "value"),
-# )
-# @dropdown_options_input
-# def update_category_dropdown(search_value, input_value):
-#     stmt = select(Seeds.category).where(
-#         Seeds.category.ilike(f'%{search_value}%')
-#     ).distinct()
-#     with Session.begin() as session:
-#         result = query_orm(session, stmt)
-#     return result
+@callback(
+    Output("add-seeds-cultivar", "options"),
+    Input("add-seeds-cultivar", "search_value"),
+    Input("add-seeds-cultivar", "value"),
+)
+def update_seeds_cultivar(search_value, input_value):
+    if not search_value:
+        search_value = ''
+    stmt = select(Cultivar.name, Cultivar.category).where(
+        Cultivar.name.ilike(f'%{search_value}%')
+    ).distinct().order_by(Cultivar.name)
+    with Session.begin() as session:
+        result = session.execute(stmt)
+    return [f"{name} ({cat})" for name, cat in result]
 
 # @callback(
 #     Output('add-seeds-cultivar', 'value'),

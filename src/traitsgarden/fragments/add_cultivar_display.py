@@ -38,9 +38,9 @@ def toggle_addcultivar_modal(n_open, n_close, is_open):
 def update_category_dropdown(search_value, input_value):
     stmt = select(Cultivar.category).where(
         Cultivar.category.ilike(f'%{search_value}%')
-    ).distinct()
+    ).distinct().order_by(Cultivar.category)
     with Session.begin() as session:
-        result = query_orm(session, stmt)
+        result = session.execute(stmt).scalars().all()
     return result
 
 @callback(
