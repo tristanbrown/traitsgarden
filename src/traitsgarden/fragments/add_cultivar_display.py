@@ -5,6 +5,7 @@ import dash_bootstrap_components as dbc
 from traitsgarden.db.connect import Session
 from traitsgarden.db.models import Plant, Seeds, Cultivar
 from traitsgarden.db.query import query_orm
+from traitsgarden.fragments.shared import dropdown_options_input
 
 cultivar_add_display = dbc.Modal([
         dbc.ModalHeader(dbc.ModalTitle("Add Cultivar")),
@@ -33,20 +34,14 @@ def toggle_addcultivar_modal(n_open, n_close, is_open):
     Input("add-category-dropdown", "search_value"),
     Input("add-category-dropdown", "value"),
 )
+@dropdown_options_input
 def update_category_dropdown(search_value, input_value):
-    if not search_value:
-        search_value = ''
     stmt = select(Cultivar.category).where(
         Cultivar.category.ilike(f'%{search_value}%')
-    )
+    ).distinct()
     with Session.begin() as session:
         result = query_orm(session, stmt)
-    options = list(set(result))
-    if search_value:  ## Include the user input
-        options = [search_value] + options
-    if input_value:  ## Keep the input after selected
-        options = [input_value] + options
-    return options
+    return result
 
 @callback(
     Output('add-category-dropdown', 'value'),

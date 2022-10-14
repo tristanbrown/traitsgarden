@@ -4,7 +4,7 @@ from dash.dependencies import Input, Output, State, MATCH, ALL
 import dash_bootstrap_components as dbc
 from traitsgarden.db.connect import Session
 from traitsgarden.db.models import Plant, Seeds, Cultivar
-from traitsgarden.fragments.add_obj_displays import cultivar_add_display
+from traitsgarden.fragments.add_cultivar_display import cultivar_add_display
 from traitsgarden.fragments.delete_obj import del_display
 
 register_page(__name__, path='/traitsgarden/details')
