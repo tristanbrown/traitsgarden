@@ -30,12 +30,13 @@ def layout(cultivarid=None, seedsid=None, plantid=None):
         html.Br(),
         dbc.Row([
             dbc.Col(dbc.Button('Save Changes', id='save-changes', n_clicks=0), width='auto'),
-            dbc.Col(dbc.Button('Delete', id='delete-entity', n_clicks=0), width='auto')
+            dbc.Col(dbc.Button('Delete', id='delete-entity-open', n_clicks=0), width='auto')
         ],
         align='center',
         justify="start"
         ),
         html.Div(id='save-status', children='-'),
+        del_display,
     ])
 
 def resolve_display(session, cultivarid, seedsid, plantid):
@@ -63,7 +64,6 @@ def display_cultivar(obj):
             ], width='auto'),
             dbc.Col([
                 dbc.Button('Delete Cultivar', id='delete-cultivar-open', n_clicks=0),
-                del_display('cultivar', obj.id)
             ])
         ],
         align='center',

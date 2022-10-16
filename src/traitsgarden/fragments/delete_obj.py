@@ -6,27 +6,49 @@ from traitsgarden.db.models import Plant, Seeds, Cultivar
 
 models = {'cultivar': Cultivar, 'seeds': Seeds, 'plant': Plant}
 
-def del_display(model, id):
-    return dbc.Modal([
-        dcc.Store(id='obj-to-delete', data={'model': model, 'id': id}),
-        dbc.ModalHeader(dbc.ModalTitle(f"Delete {model.capitalize()}")),
-        dbc.ModalBody("Are you sure you want to delete this object?"),
-        dbc.ModalFooter([
-                dcc.Location(id='delete-destination', refresh=True),
-                dbc.Button("Delete", id="confirm-delete"),
-                dbc.Button("Cancel", id="cancel-delete"),
-                ])
-    ], id="delete-obj-modal")
+del_display = dbc.Modal([
+    dcc.Store(id='obj-to-delete', data={'model': None, 'id': None}),
+    dbc.ModalHeader(dbc.ModalTitle(id="delete-title")),
+    dbc.ModalBody("Are you sure you want to delete this object?"),
+    dbc.ModalFooter([
+            dcc.Location(id='delete-destination', refresh=True),
+            dbc.Button("Delete", id="confirm-delete"),
+            dbc.Button("Cancel", id="cancel-delete"),
+            ])
+], id="delete-obj-modal")
+
+@callback(
+    Output("delete-title", 'children'),
+    Output('obj-to-delete', 'data'),
+    Input("delete-cultivar-open", "n_clicks"),
+    Input("delete-entity-open", "n_clicks"),
+    State('ids', 'data'),
+    prevent_initial_call=True,
+)
+def choose_obj_to_delete(cultivar_click, other_click, ids):
+    if cultivar_click:
+        model = 'cultivar'
+    elif other_click:
+        if ids['seeds']:
+            model = 'seeds'
+        elif ids['plant']:
+            model = 'plant'
+        else:
+            model = 'cultivar'
+    title = f"Delete {model.capitalize()}"
+    del_ids = {'model': model, 'id': ids[model]}
+    return title, del_ids
 
 @callback(
     Output("delete-obj-modal", "is_open"),
     [Input("delete-cultivar-open", "n_clicks"),
+    Input("delete-entity-open", "n_clicks"),
     Input("confirm-delete", "n_clicks"),
     Input("cancel-delete", "n_clicks")],
     [State("delete-obj-modal", "is_open")],
 )
-def toggle_delete_modal(n_open, n_confirm, n_cancel, is_open):
-    if any([n_open, n_confirm, n_cancel]):
+def toggle_delete_modal(n_open1, n_open2, n_confirm, n_cancel, is_open):
+    if any([n_open1, n_open2, n_confirm, n_cancel]):
         return not is_open
     return is_open
 
