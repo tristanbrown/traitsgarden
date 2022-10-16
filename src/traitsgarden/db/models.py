@@ -117,11 +117,10 @@ class Seeds(DBObjMixin, Base):
     @classmethod
     def add(cls, session, name, category, pkt_id, **kwargs):
         year = f"20{pkt_id[0:2]}"
-        variant = pkt_id[-1]
         cultivar = Cultivar.query(session, name, category)
         if cultivar is None:
             cultivar = Cultivar.add(session, name, category)
-        obj = cls(cultivar=cultivar, year=year, variant=variant, **kwargs)
+        obj = cls(cultivar=cultivar, pkt_id=pkt_id, year=year, **kwargs)
         session.add(obj)
         return obj
 

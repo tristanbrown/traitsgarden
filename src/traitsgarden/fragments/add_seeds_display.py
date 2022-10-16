@@ -42,22 +42,24 @@ def update_seeds_cultivar(search_value, input_value):
     ).distinct().order_by(Cultivar.name)
     with Session.begin() as session:
         result = session.execute(stmt)
-    return [f"{name} ({cat})" for name, cat in result]
+    return [{'label': f"{name} ({cat})", 'value': f"{name}|{cat}"} \
+        for name, cat in result]
 
-# @callback(
-#     Output('add-seeds-cultivar', 'value'),
-#     Output('add-seeds-input', 'value'),
-#     Output('add-seeds-link', 'href'),
-#     Input('save-new-seeds', 'n_clicks'),
-#     State('add-seeds-input', 'value'),
-#     State('add-seeds-cultivar', 'value'),
-#     prevent_initial_call=True,
-# )
-# def save_changes(n_clicks, seeds_name, category):
-#     with Session.begin() as session:
-#         obj = Seeds.add(session, seeds_name, category)
-#     with Session.begin() as session:
-#         obj = Seeds.query(session, seeds_name, category)
-#         if obj:
-#             return None, None, f"/traitsgarden/details?seedsid={obj.id}"
-#     return None, None, ''
+@callback(
+    Output('add-seeds-cultivar', 'value'),
+    Output('add-seeds-input', 'value'),
+    Output('add-seeds-link', 'href'),
+    Input('save-new-seeds', 'n_clicks'),
+    State('add-seeds-input', 'value'),
+    State('add-seeds-cultivar', 'value'),
+    prevent_initial_call=True,
+)
+def save_changes(n_clicks, pkt_id, cultivar):
+    name, category = cultivar.split('|')
+    with Session.begin() as session:
+        obj = Seeds.add(session, name, category, pkt_id)
+    with Session.begin() as session:
+        obj = Seeds.query(session, name, category, pkt_id)
+        if obj:
+            return None, None, f"/traitsgarden/details?seedsid={obj.id}"
+    return None, None, ''
