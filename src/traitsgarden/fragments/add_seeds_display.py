@@ -58,6 +58,7 @@ def save_changes(n_clicks, pkt_id, cultivar):
     name, category = cultivar.split('|')
     with Session.begin() as session:
         obj = Seeds.add(session, name, category, pkt_id)
+        pkt_id = obj.pkt_id
     with Session.begin() as session:
         obj = Seeds.query(session, name, category, pkt_id)
         if obj:

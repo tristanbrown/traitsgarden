@@ -115,14 +115,40 @@ class Seeds(DBObjMixin, Base):
         return query_one_obj(session, cls, name=name, category=category, pkt_id=pkt_id)
 
     @classmethod
-    def add(cls, session, name, category, pkt_id, **kwargs):
-        year = f"20{pkt_id[0:2]}"
+    def add(cls, session, name, category, pkt_id=None, **kwargs):
         cultivar = Cultivar.query(session, name, category)
         if cultivar is None:
             cultivar = Cultivar.add(session, name, category)
+        if not pkt_id:
+            pkt_id = cls.next_pkt_id(session, cultivar)
+        year = f"20{pkt_id[0:2]}"
         obj = cls(cultivar=cultivar, pkt_id=pkt_id, year=year, **kwargs)
         session.add(obj)
         return obj
+
+    @classmethod
+    def next_pkt_id(cls, session, cultivar):
+        """Check the existing pkt_ids and get the next
+        incremented pkt_id for a particular cultivar.
+        Examples:
+        22A -> 22B
+        22BZ -> 22CA
+        """
+        year_label = str(arrow.now().year)[-2:]
+        stmt = select(cls.pkt_id).where(
+            cls.pkt_id.ilike(f'{year_label}%'),
+            cls.name == cultivar.name,
+            cls.category == cultivar.category
+        ).distinct()
+        result = session.execute(stmt)
+        pkt_ids = result.scalars().all()
+        pkt_ids = util.sort_incremented(pkt_ids)
+        if not pkt_ids:
+            next_letter = 'A'
+        else:
+            last_id = pkt_ids[-1]
+            next_letter = util.increment_str(last_id[2:])
+        return f"{year_label}{next_letter}"
 
     @staticmethod
     def table():
