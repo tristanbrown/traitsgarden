@@ -229,11 +229,10 @@ class Plant(DBObjMixin, Base):
     @classmethod
     def add(cls, session, name, category, plant_id, **kwargs):
         pkt_id = plant_id[:-2]
-        individual = plant_id[-2:]
         seedparent = Seeds.query(session, name, category, pkt_id)
         if seedparent is None:
             seedparent = Seeds.add(session, name, category, pkt_id)
-        obj = cls(seeds=seedparent, individual=individual, **kwargs)
+        obj = cls(seeds=seedparent, plant_id=plant_id, **kwargs)
         session.add(obj)
         return obj
 
