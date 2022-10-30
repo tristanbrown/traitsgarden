@@ -7,34 +7,37 @@ from traitsgarden.db.models import Plant, Seeds, Cultivar
 from traitsgarden.db.query import query_orm
 from traitsgarden.fragments.shared import dropdown_options_input
 
+cultivar_dropdown = dcc.Dropdown(id="add-obj-cultivar", placeholder="Cultivar")
+
 seeds_add_display = dbc.Modal([
         dbc.ModalHeader(dbc.ModalTitle("Add Seeds")),
         dbc.ModalBody([
-            dbc.Row(dbc.Col(dcc.Dropdown(id="add-seeds-cultivar", placeholder="Cultivar",))),
-            dbc.Row(dbc.Col(dbc.Input(id="add-seeds-input", placeholder='Seeds ID (optional)')))
+            cultivar_dropdown,
+            dbc.Input(id="add-seeds-input", placeholder='Seeds ID (optional)')
             ]),
         dbc.ModalFooter([
                 dcc.Location(id='add-seeds-link', refresh=True),
-                dbc.Button("Save", id="save-new-seeds"),
+                dbc.Button("Save", id={'type': 'save-new-obj', 'index': "add-seeds"}),
                 ])
-    ], id="add-seeds-modal")
+    ], id={'type': 'add-modal', 'index': 'add-seeds'})
 
 @callback(
-    Output("add-seeds-modal", "is_open"),
-    [Input("add-seeds", "n_clicks"), Input("save-new-seeds", "n_clicks")],
-    [State("add-seeds-modal", "is_open")],
+    Output({'type': 'add-modal', 'index': MATCH}, "is_open"),
+    [Input({'type': 'add-obj', 'index': MATCH}, "n_clicks"),
+    Input({'type': 'save-new-obj', 'index': MATCH}, "n_clicks")],
+    [State({'type': 'add-modal', 'index': MATCH}, "is_open")],
 )
-def toggle_addseeds_modal(n_open, n_close, is_open):
+def toggle_add_modal(n_open, n_close, is_open):
     if n_open or n_close:
         return not is_open
     return is_open
 
 @callback(
-    Output("add-seeds-cultivar", "options"),
-    Input("add-seeds-cultivar", "search_value"),
-    Input("add-seeds-cultivar", "value"),
+    Output("add-obj-cultivar", "options"),
+    Input("add-obj-cultivar", "search_value"),
+    Input("add-obj-cultivar", "value"),
 )
-def update_seeds_cultivar(search_value, input_value):
+def update_cultivar_options(search_value, input_value):
     if not search_value:
         search_value = ''
     stmt = select(Cultivar.name, Cultivar.category).where(
@@ -46,12 +49,12 @@ def update_seeds_cultivar(search_value, input_value):
         for name, cat in result]
 
 @callback(
-    Output('add-seeds-cultivar', 'value'),
+    Output('add-obj-cultivar', 'value'),
     Output('add-seeds-input', 'value'),
     Output('add-seeds-link', 'href'),
-    Input('save-new-seeds', 'n_clicks'),
+    Input({'type': 'save-new-obj', 'index': 'add-seeds'}, 'n_clicks'),
     State('add-seeds-input', 'value'),
-    State('add-seeds-cultivar', 'value'),
+    State('add-obj-cultivar', 'value'),
     prevent_initial_call=True,
 )
 def save_changes(n_clicks, pkt_id, cultivar):

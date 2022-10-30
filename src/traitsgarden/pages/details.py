@@ -80,7 +80,9 @@ def display_cultivar(obj):
         html.Br(),
         dbc.Row([
             dbc.Col([
-                dbc.Button('Add Seeds', id='add-seeds', n_clicks=0),
+                dbc.Button('Add Seeds',
+                    id={'type': 'add-obj', 'index': "add-seeds"},
+                    n_clicks=0),
                 seeds_add_display], width='auto'),
             dbc.Col([
                 dbc.Button('Add Plant', id='add-plant', n_clicks=0),
