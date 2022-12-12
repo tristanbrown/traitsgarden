@@ -106,6 +106,7 @@ class Seeds(DBObjMixin, Base):
     last_count = Column(Integer())
     generation = Column(String(length=2), default='1')
     germination = Column(Numeric(2, 2))
+    variant_notes = Column(String())
 
     def __repr__(self, recursion=False):
         return f"<Seeds: {self.name} - {self.category} - {self.pkt_id}>"

@@ -1,1 +1,16 @@
-Generic single-database configuration.
+Multi-database configuration.
+
+Specify database names with:
+> alembic -n db_name
+
+Generate revisions:
+> alembic -n db_name revision --autogenerate -m "Commit message"
+
+If "Target database is not up to date":
+> alembic -n db_name stamp head
+
+Upgrade to head:
+> alembic -n db_name upgrade head
+
+Downgrade one step:
+> alembic -n db_name downgrade -1
