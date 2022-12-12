@@ -104,7 +104,7 @@ class Seeds(DBObjMixin, Base):
     ## Seeds Data
     source = Column(String(length=120))
     last_count = Column(Integer())
-    generation = Column(String(length=2), default='1')
+    generation = Column(String(length=4), default='1')
     germination = Column(Numeric(2, 2))
     variant_notes = Column(String())
 
