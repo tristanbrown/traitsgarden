@@ -205,15 +205,29 @@ class Plant(DBObjMixin, Base):
     ## Plant Data
     start_date = Column(Date())
     germ_date = Column(Date())
+    pot_up_date = Column(Date())
+    final_pot_date = Column(Date())
     flower_date = Column(Date())
     fruit_date = Column(Date())
+    died = Column(Date())
     conditions = Column(String())
     growth = Column(String())
+    health = Column(String())
     height = Column(Numeric())  ## In inches
+    width = Column(Numeric())  ## In inches
+    staked = Column(Boolean(), default=False)
+    seeds_collected = Column(Boolean(), default=False)
     fruit_yield = Column(String(length=120))
     fruit_desc = Column(String())
     flavor = Column(String())
+    brix_sg = Column(Numeric())
     variant_notes = Column(String())
+    pros = Column(String())
+    cons = Column(String())
+    flavor_rating = Column(Integer())
+    growth_rating = Column(Integer())
+    health_rating = Column(Integer())
+    powdery_mildew = Column(String(length=4))
     active = Column(Boolean(), default=False)
 
     __table_args__ = (
