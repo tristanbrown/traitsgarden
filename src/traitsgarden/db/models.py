@@ -189,6 +189,11 @@ class Plant(DBObjMixin, Base):
 
     ## ID Fields
     id = Column(Integer, primary_key=True)
+    cultivar_id = Column(Integer, ForeignKey('cultivar.id'), nullable=False)
+    cultivar = relationship("Cultivar")
+    name = association_proxy('cultivar', 'name')
+    category = association_proxy('cultivar', 'category')
+    plant_id = Column(String(length=6), nullable=False)
     seeds_id = Column(Integer)
     seeds = relationship('Seeds', #foreign_keys=[seeds_id],
         primaryjoin="foreign(Plant.seeds_id)==Seeds.id"
@@ -197,10 +202,6 @@ class Plant(DBObjMixin, Base):
         ['seeds_id'], ['seeds.id'],
         name='fk_plant_seeds_id', use_alter=True
     )
-    name = association_proxy('seeds', 'name')
-    category = association_proxy('seeds', 'category')
-    cultivar = association_proxy('seeds', 'cultivar')
-    plant_id = Column(String(length=6), nullable=False)
 
     ## Plant Data
     start_date = Column(Date())
@@ -231,7 +232,7 @@ class Plant(DBObjMixin, Base):
     active = Column(Boolean(), default=False)
 
     __table_args__ = (
-        UniqueConstraint('plant_id', name='_plant_id_uc'),
+        UniqueConstraint('cultivar_id', 'plant_id', name='_plant_id_uc'),
                      )
 
     def __repr__(self, recursion=False):
@@ -243,22 +244,23 @@ class Plant(DBObjMixin, Base):
 
     @classmethod
     def add(cls, session, name, category, plant_id, **kwargs):
-        pkt_id = plant_id[:-2]
+        cultivar = Cultivar.query(session, name, category)
+        if cultivar is None:
+            cultivar = Cultivar.add(session, name, category)
+        pkt_id = plant_id[:3]
         seedparent = Seeds.query(session, name, category, pkt_id)
-        if seedparent is None:
-            seedparent = Seeds.add(session, name, category, pkt_id)
-        obj = cls(seeds=seedparent, plant_id=plant_id, **kwargs)
+        obj = cls(cultivar=cultivar, plant_id=plant_id, seeds=seedparent, **kwargs)
         session.add(obj)
         return obj
 
     @classmethod
     def table(cls):
-        query = """SELECT b.cultivar_id, c.name, c.category, b.pkt_id, a.*
+        query = """SELECT b.name, b.category, c.pkt_id, a.*
             FROM plant a
-            JOIN seeds b
-            ON a.seeds_id = b.id
-            JOIN cultivar c
-            ON b.cultivar_id = c.id
+            JOIN cultivar b
+            ON a.cultivar_id = b.id
+            LEFT JOIN seeds c
+            ON a.seeds_id = c.id
             """
         datecols = cls.datecols()
         df = query_as_df(query, datecols)
