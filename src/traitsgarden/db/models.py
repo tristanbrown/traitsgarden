@@ -95,11 +95,7 @@ class Seeds(DBObjMixin, Base):
                      )
 
     ## Parent/Child Relationships
-    # TODO: Convert to Many to Many Fields with 'mother' bool flag in ref table
-    mother_id = Column(Integer, ForeignKey('plant.id'))
-    father_id = Column(Integer, ForeignKey('plant.id'))
-    mother = relationship("Plant", foreign_keys=[mother_id], post_update=True)
-    father = relationship("Plant", foreign_keys=[father_id], post_update=True)
+    parents = relationship("SeedParent")
 
     ## Seeds Data
     source = Column(String(length=120))
@@ -163,26 +159,23 @@ class Seeds(DBObjMixin, Base):
             ['id', 'cultivar_id', 'category', 'name', 'pkt_id']).reset_index()
         return df.set_index('id').sort_index()
 
-    def add_parent(self, session, plant_id, parent=None, name=None, category=None):
+    def add_parent(self, session, plant_id, name=None, mother=True,):
         """Defaults to the same name/category,
         but others can be specified for crossbreeds.
 
-        Default parent is both. Can be specified to 'mother' or 'father'.
+        Default parent is mother.
         """
+        category = self.category
         if name is None:
             name = self.name
-        if category is None:
-            category = self.category
         parent_obj = Plant.query(session, name, category, plant_id)
-        self.add_parent_obj(session, parent_obj, parent)
+        self.add_parent_obj(session, parent_obj, mother)
 
-    def add_parent_obj(self, session, parent_obj, parent=None):
-        """Default parent is both. Can be specified to 'mother' or 'father'."""
-        if parent is None:
-            for _parent in ('mother', 'father'):
-                setattr(self, _parent, parent_obj)
-        else:
-            setattr(self, parent, parent_obj)
+    def add_parent_obj(self, session, parent_obj, mother=True):
+        """Default parent is mother."""
+        parentage = SeedParent(mother=mother)
+        parentage.parent = parent_obj
+        self.parents.append(parentage)
 
 class Plant(DBObjMixin, Base):
     __tablename__ = 'plant'
@@ -302,6 +295,34 @@ class Plant(DBObjMixin, Base):
             return parent.get()
         except DoesNotExist:
             return
+
+class SeedParent(Base):
+    __tablename__ = 'seedparent'
+
+    ## ID Fields
+    seeds_id = Column(Integer, ForeignKey('seeds.id'), primary_key=True)
+    plant_id = Column(Integer, ForeignKey('plant.id'), primary_key=True)
+    parent = relationship('Plant')
+
+    ## Extra Flags
+    mother = Column(Boolean(), default=True, nullable=False)
+
+    @staticmethod
+    def table():
+        query = """SELECT c1.category, c1.name seeds_name, s.pkt_id,
+                c2.name parent_name, p.plant_id, sp.mother
+            FROM seeds s
+            JOIN cultivar c1
+            ON s.cultivar_id = c1.id
+            JOIN seedparent sp
+            ON s.id = sp.seeds_id
+            JOIN plant p
+            ON sp.plant_id = p.id
+            JOIN cultivar c2
+            ON p.cultivar_id = c2.id
+            """
+        df = query_as_df(query)
+        return df
 
 def create_all():
     Base.metadata.create_all()
