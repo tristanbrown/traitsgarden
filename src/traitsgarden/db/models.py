@@ -95,7 +95,9 @@ class Seeds(DBObjMixin, Base):
                      )
 
     ## Parent/Child Relationships
-    parents = relationship("SeedParent")
+    parentage = relationship('SeedParent', lazy='subquery')
+    parents = association_proxy('parentage', 'plant')
+    mothers = association_proxy('parentage', 'mother')
 
     ## Seeds Data
     source = Column(String(length=120))
@@ -173,9 +175,9 @@ class Seeds(DBObjMixin, Base):
 
     def add_parent_obj(self, session, parent_plant, mother=True):
         """Default parent is mother."""
-        parentage = SeedParent(mother=mother)
-        parentage.plant = parent_plant
-        self.parents.append(parentage)
+        if parent_plant not in self.parents:
+            parent_assoc = SeedParent(
+                seeds=self, plant=parent_plant, mother=mother)
 
 class Plant(DBObjMixin, Base):
     __tablename__ = 'plant'
@@ -302,6 +304,9 @@ class SeedParent(Base):
     ## ID Fields
     seeds_id = Column(Integer, ForeignKey('seeds.id'), primary_key=True)
     plant_id = Column(Integer, ForeignKey('plant.id'), primary_key=True)
+
+    ## Relationships
+    seeds = relationship('Seeds', back_populates='parentage')
     plant = relationship('Plant')
 
     ## Extra Flags

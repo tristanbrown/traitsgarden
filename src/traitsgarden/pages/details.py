@@ -101,7 +101,7 @@ def display_cultivar(obj):
 
 def display_seeds(obj):
     parents = [
-        f"{parent.plant.name} {parent.plant.plant_id}" for parent in obj.parents]
+        f"{parent.name} {parent.plant_id}" for parent in obj.parents]
     layout = html.Div([
         html.H3("Seeds"),
         f"ID: {obj.pkt_id}",
