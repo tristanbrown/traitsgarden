@@ -100,6 +100,8 @@ def display_cultivar(obj):
     return layout
 
 def display_seeds(obj):
+    parents = [
+        f"{parent.plant.name} {parent.plant.plant_id}" for parent in obj.parents]
     layout = html.Div([
         html.H3("Seeds"),
         f"ID: {obj.pkt_id}",
@@ -110,7 +112,7 @@ def display_seeds(obj):
         html.Br(),
         f"Last Count: {obj.last_count}",
         html.Br(),
-        f"Parents: {obj.mother}, {obj.father}",
+        f"Parents: {','.join(parents)}",
     ])
     return layout
 

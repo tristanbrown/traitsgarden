@@ -171,10 +171,10 @@ class Seeds(DBObjMixin, Base):
         parent_obj = Plant.query(session, name, category, plant_id)
         self.add_parent_obj(session, parent_obj, mother)
 
-    def add_parent_obj(self, session, parent_obj, mother=True):
+    def add_parent_obj(self, session, parent_plant, mother=True):
         """Default parent is mother."""
         parentage = SeedParent(mother=mother)
-        parentage.parent = parent_obj
+        parentage.plant = parent_plant
         self.parents.append(parentage)
 
 class Plant(DBObjMixin, Base):
@@ -302,7 +302,7 @@ class SeedParent(Base):
     ## ID Fields
     seeds_id = Column(Integer, ForeignKey('seeds.id'), primary_key=True)
     plant_id = Column(Integer, ForeignKey('plant.id'), primary_key=True)
-    parent = relationship('Plant')
+    plant = relationship('Plant')
 
     ## Extra Flags
     mother = Column(Boolean(), default=True, nullable=False)
