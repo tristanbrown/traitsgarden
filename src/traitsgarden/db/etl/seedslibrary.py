@@ -9,6 +9,7 @@ class SeedLibrary():
     def __init__(self, path):
         self.seeds = self.get_seeds_table(path)
         self.cultivars = self.get_cultivars()
+        self.plants = self.get_plants_table(path)
 
     ## Seeds
 
@@ -51,3 +52,71 @@ class SeedLibrary():
         cult_table = cult_table.loc[~cult_table.index.isin(dupes_drop.index),:]
 
         return cult_table
+
+    ## Plants
+
+    def get_plants_table(self, path):
+        """"""
+        plant_library1 = self.read_plants1(path)
+        plant_library2 = self.read_plants2(path)
+        print(f"Extra cols 1: {set(plant_library1.columns) - set(plant_library2.columns)}")
+        print(f"Extra cols 2: {set(plant_library2.columns) - set(plant_library1.columns)}")
+        all_plants = pd.concat([plant_library1, plant_library2], ignore_index=True)
+        plants_table = self.fix_plant_names(all_plants)
+
+        ## Clean up columns
+        plants_table['active'] = ~(plants_table['done'].fillna(0).astype(bool))
+        plants_table = plants_table.drop(['individual', 'parent_id', 'done', 'brix_%'], axis=1
+                                      ).rename({'id': 'plant_id'}, axis=1)
+        plants_table = plants_table.replace({np.NaN: None})
+        return plants_table
+
+    def read_plants1(self, path):
+        """"""
+        plant_library1 = pd.read_excel(path, sheet_name='2021_plants')
+        plant_library1 = plant_library1.dropna(axis=1, how='all')
+        plant_library1 = plant_library1.rename(
+            {'diseases': 'health'},
+            axis=1)
+        plant_library1 = plant_library1.drop(['fruit_yield', 'root_depth_in'], axis=1)
+        return plant_library1
+
+    def read_plants2(self, path):
+        """"""
+        plant_library2 = pd.read_excel(path, sheet_name='2022_plants')
+        plant_library3 = pd.read_excel(path, sheet_name='2023_plants')
+        plant_library2 = pd.concat([plant_library2, plant_library3])
+        plant_library2 = plant_library2.dropna(axis=1, how='all')
+        plant_library2 = plant_library2.drop(['similar_varieties'], axis=1)
+        return plant_library2
+
+    def fix_plant_names(self, all_plants):
+        """"""
+        all_plants = all_plants.copy()
+        cultivars = self.cultivars
+        missing_plants = set(all_plants['name']) - set(cultivars['name'])
+        plant_names = all_plants['name'].unique()
+        cult_names = cultivars['name'].unique()
+        name_options = {
+            plant_name: [cult_name for cult_name in cult_names if plant_name in cult_name]
+            for plant_name in missing_plants
+        }
+        name_map = {
+            'Mango Grape': 'Mango grape',
+            'Honey Plus Hybrid': 'Honey Plus Hybrid F1',
+            'Dusky Pink Cherry': 'Dusky pink cherry',
+            "Burpee's Best Hybrid": "Burpee's Best Hybrid F1",
+            'Baby Vilma': 'Baby Vilma F1',
+            'Sweetheart of the Patio': 'Sweetheart of the Patio F1',
+            'Golden Goose Hybrid': 'Golden Goose Hybrid F1',
+            'Cocoa Micro': 'Cocoa Micro F1',
+            'Orange Oxheart': 'Orange oxheart',
+            'Vilmalos': 'Vilmalos F1',
+            'Baby Joke': 'Baby Joke F1',
+            'Sun Gold': 'Sun Gold F1',
+            'Sunchocola': 'Sunchocola F1'
+        }
+        all_plants = all_plants.replace(name_map)
+        missing_plants = set(all_plants['name']) - set(cultivars['name'])
+        print(f"Plants without seeds: {missing_plants}")
+        return all_plants
