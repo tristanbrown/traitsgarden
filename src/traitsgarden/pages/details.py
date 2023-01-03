@@ -14,15 +14,12 @@ register_page(__name__, path='/traitsgarden/details')
 def layout(cultivarid=None, seedsid=None, plantid=None):
     if cultivarid == seedsid == plantid == None:
         return
-    with Session.begin() as session:
-        ids, section1, section2 = resolve_display(
-            session, cultivarid, seedsid, plantid
-        )
+    display = DetailsDisplay(cultivarid, seedsid, plantid)
     return html.Div([
-        dcc.Store(id='ids', data=ids),
-        section1,
+        dcc.Store(id='ids', data=display.ids),
+        display.section1,
         html.Br(),
-        section2,
+        display.section2,
         html.Br(),
         dbc.Row([
             dbc.Col(dbc.Button('Save Changes', id='save-changes', n_clicks=0), width='auto'),
@@ -35,25 +32,41 @@ def layout(cultivarid=None, seedsid=None, plantid=None):
         del_display,
     ])
 
-def resolve_display(session, cultivarid, seedsid, plantid):
-    if plantid:
-        obj = Plant.get(session, plantid)
-        cultivarid = obj.cultivar.id
-        section2 = display_plant(obj)
-    elif seedsid:
-        obj = Seeds.get(session, seedsid)
-        cultivarid = obj.cultivar.id
-        section2 = display_seeds(obj)
-    else:
-        section2 = None
-    cultivar = Cultivar.get(session, cultivarid)
-    section1 = display_cultivar(cultivar)
-    ids = {
-        'cultivar': cultivarid,
-        'seeds': seedsid,
-        'plant': plantid,
-    }
-    return ids, section1, section2
+class DetailsDisplay():
+    """"""
+
+    def __init__(self, cultivarid, seedsid, plantid):
+        self.cultivarid = cultivarid
+        self.seedsid = seedsid
+        self.plantid = plantid
+        self.section2 = self.get_section2()
+        self.section1 = self.get_section1()
+
+    @property
+    def ids(self):
+        return {
+            'cultivar': self.cultivarid,
+            'seeds': self.seedsid,
+            'plant': self.plantid,
+        }
+
+    def get_section2(self):
+        if self.plantid:
+            return self.get_obj_display(Plant, self.plantid, display_plant)
+        elif self.seedsid:
+            return self.get_obj_display(Seeds, self.seedsid, display_seeds)
+
+    def get_section1(self):
+        return self.get_obj_display(Cultivar, self.cultivarid, display_cultivar)
+
+    def get_obj_display(self, model, obj_id, display_func):
+        with Session.begin() as session:
+            obj = model.get(session, obj_id)
+            try:
+                self.cultivarid = obj.cultivar.id
+            except AttributeError:
+                pass
+            return display_func(obj)
 
 def display_cultivar(obj):
     layout = html.Div([
