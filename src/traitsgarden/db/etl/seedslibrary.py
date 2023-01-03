@@ -30,7 +30,7 @@ class SeedLibrary():
         """"""
         seeds_table = self.read_seeds(path)
         seeds_table = self.fix_names(seeds_table)
-        seeds_table = seeds_table.drop(['variant', 'parent', 'year'], axis=1
+        seeds_table = seeds_table.drop(['variant', 'year'], axis=1
                               ).rename({'id': 'pkt_id', 'parent_description': 'variant_notes'}, axis=1)
         return seeds_table.replace({np.NaN: None})
 

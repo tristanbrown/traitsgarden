@@ -11,7 +11,7 @@ class ParentsMatch():
     match_cols = ['category', 'seeds_name', 'pkt_id', 'parent_name', 'plant_id', 'mother']
     
     def __init__(self, library):
-        self.library = library[['name', 'category', 'parent', 'id']].rename({'id': 'pkt_id'}, axis=1).copy()
+        self.library = library[['name', 'category', 'parent', 'pkt_id']].copy()
         self.library = self.library.dropna(subset=['parent'])
         self.matches = self.get_all_matches()
         self.matches['parent_name'] = self.rename_parents(self.matches['parent_name'])
