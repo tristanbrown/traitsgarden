@@ -3,6 +3,7 @@ from dash import dcc, html, callback, register_page
 from dash.dependencies import Input, Output, State, MATCH, ALL
 import dash_bootstrap_components as dbc
 from traitsgarden.db.connect import Session
+from traitsgarden.db.entry import update_one_obj
 from traitsgarden.db.models import Plant, Seeds, Cultivar
 from traitsgarden.fragments.add_cultivar_display import cultivar_add_display
 from traitsgarden.fragments.add_obj_display import add_display_modal
@@ -13,13 +14,8 @@ register_page(__name__, path='/traitsgarden/details')
 def layout(cultivarid=None, seedsid=None, plantid=None):
     if cultivarid == seedsid == plantid == None:
         return
-    ids = {
-        'cultivar': cultivarid,
-        'seeds': seedsid,
-        'plant': plantid,
-    }
     with Session.begin() as session:
-        section1, section2 = resolve_display(
+        ids, section1, section2 = resolve_display(
             session, cultivarid, seedsid, plantid
         )
     return html.Div([
@@ -52,7 +48,12 @@ def resolve_display(session, cultivarid, seedsid, plantid):
         section2 = None
     cultivar = Cultivar.get(session, cultivarid)
     section1 = display_cultivar(cultivar)
-    return section1, section2
+    ids = {
+        'cultivar': cultivarid,
+        'seeds': seedsid,
+        'plant': plantid,
+    }
+    return ids, section1, section2
 
 def display_cultivar(obj):
     layout = html.Div([
@@ -70,7 +71,9 @@ def display_cultivar(obj):
         justify="start"
         ),
         html.H3(obj.category),
-        f"Species: {obj.species}",
+        "Species: ",
+        dcc.Input(id={'type': 'input-field', 'section': 'cultivar', 'index': "species"},
+            type="text", value=obj.species),
         html.Br(),
         f"Hybrid: {obj.hybrid}",
         html.Br(),
@@ -123,30 +126,30 @@ def display_plant(obj):
         html.Br(),
         f"Start Date: ",
         dcc.DatePickerSingle(
-            id={'type': 'date-field', 'index': "start_date"},
+            id={'type': 'date-field', 'section': 'plant', 'index': "start_date"},
             date=obj.start_date,
         ),
         html.Br(),
         f"Conditions:",
-        dcc.Input(id={'type': 'input-field', 'index': "conditions"},
+        dcc.Input(id={'type': 'input-field', 'section': 'plant', 'index': "conditions"},
             type="text", value=obj.conditions),
         html.Br(),
         f"Variant Notes:",
         html.Br(),
-        dcc.Textarea(id={'type': 'input-field', 'index': "variant_notes"},
+        dcc.Textarea(id={'type': 'input-field', 'section': 'plant', 'index': "variant_notes"},
             style={'width': '30%', 'height': 100},
             value=obj.variant_notes),
         html.Br(),
         "Height: ",
-        dcc.Input(id={'type': 'input-field', 'index': "height"},
+        dcc.Input(id={'type': 'input-field', 'section': 'plant', 'index': "height"},
             type="number", value=obj.height),
         html.Br(),
         f"Fruit Description:",
-        dcc.Input(id={'type': 'input-field', 'index': "fruit_desc"},
+        dcc.Input(id={'type': 'input-field', 'section': 'plant', 'index': "fruit_desc"},
             type="text", value=obj.fruit_desc),
         html.Br(),
         f"Fruit Flavor:",
-        dcc.Input(id={'type': 'input-field', 'index': "flavor"},
+        dcc.Input(id={'type': 'input-field', 'section': 'plant', 'index': "flavor"},
             type="text", value=obj.flavor),
         html.Br(),
     ])
@@ -156,22 +159,21 @@ def display_plant(obj):
     Output('save-status', 'children'),
     Input('save-changes', 'n_clicks'),
     State('ids', 'data'),
-    State({'type': 'input-field', 'index': ALL}, 'id'),
-    State({'type': 'input-field', 'index': ALL}, 'value'),
-    State({'type': 'date-field', 'index': ALL}, 'id'),
-    State({'type': 'date-field', 'index': ALL}, 'date'),
+    State({'type': 'input-field', 'section': ALL, 'index': ALL}, 'id'),
+    State({'type': 'input-field', 'section': ALL, 'index': ALL}, 'value'),
+    State({'type': 'date-field', 'section': ALL, 'index': ALL}, 'id'),
+    State({'type': 'date-field', 'section': ALL, 'index': ALL}, 'date'),
     prevent_initial_call=True,
 )
 def save_changes(n_clicks, ids, input_fields, inputs,
         date_fields, dates):
     fields = input_fields + date_fields
     values = inputs + dates
-    form = {field['index']: val for field, val in zip(fields, values)}
     updates = {}
-    with Session.begin() as session:
-        obj = Plant.get(session, ids['plant'])
-        for field, val in form.items():
-            if getattr(obj, field) != val:
-                setattr(obj, field, val)
-                updates[field] = val
+    for model in [Cultivar, Seeds, Plant]:
+        modelname = model.__name__.lower()
+        obj_id = ids[modelname]
+        form = {field['index']: val for field, val in zip(fields, values)
+            if field['section'] == modelname}
+        updates[modelname] = update_one_obj(model, obj_id, form)
     return f"Changes Saved: {updates}"

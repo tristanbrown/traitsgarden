@@ -16,6 +16,17 @@ def bulk_insert(entities):
     with Session.begin() as session:
         session.add_all(entities)
 
+def update_one_obj(model, obj_id, form):
+    """Update a given model with the dict of values given in form."""
+    updates = {}
+    with Session.begin() as session:
+        obj = model.get(session, obj_id)
+        for field, val in form.items():
+            if getattr(obj, field) != val:
+                setattr(obj, field, val)
+                updates[field] = val
+    return updates
+
 def upsert(entity, del_vals=False):
     """Create or update a sqlalchemy entity, matching on keyfields.
 
