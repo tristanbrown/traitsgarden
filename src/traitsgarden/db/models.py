@@ -66,8 +66,8 @@ class Cultivar(DBObjMixin, Base):
         return query_one_obj(session, cls, name=name, category=category)
 
     @classmethod
-    def add(cls, session, name, category):
-        obj = cls(name=name, category=category)
+    def add(cls, session, name, category, **kwargs):
+        obj = cls(name=name, category=category, **kwargs)
         session.add(obj)
         return obj
 
