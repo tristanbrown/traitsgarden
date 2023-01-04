@@ -92,7 +92,9 @@ def display_cultivar(obj):
         html.Br(),
         f"Description:",
         html.Br(),
-        obj.description,
+        dcc.Textarea(id={'type': 'input-field', 'section': 'cultivar', 'index': "description"},
+            style={'width': '30%', 'height': 55},
+            value=obj.description),
         html.Br(),
         dbc.Row([
             dbc.Col([
@@ -150,7 +152,7 @@ def display_plant(obj):
         f"Variant Notes:",
         html.Br(),
         dcc.Textarea(id={'type': 'input-field', 'section': 'plant', 'index': "variant_notes"},
-            style={'width': '30%', 'height': 100},
+            style={'width': '30%', 'height': 55},
             value=obj.variant_notes),
         html.Br(),
         "Height: ",
