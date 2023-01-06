@@ -88,8 +88,17 @@ def display_cultivar(obj):
         dcc.Input(id={'type': 'input-field', 'section': 'cultivar', 'index': "species"},
             type="text", value=obj.species),
         html.Br(),
-        f"Hybrid: {obj.hybrid}",
-        html.Br(),
+        dbc.Row(
+            dbc.Col(
+                dbc.Checkbox(
+                    id={'type': 'input-field', 'section': 'cultivar', 'index': "hybrid"},
+                    label="Hybrid: ",
+                    label_style={'float': 'left'},
+                    input_style={'float': 'right'},
+                    value=obj.hybrid,
+                ), width=1, align='left', className="g-0"
+            ), className="g-0"
+        ),
         f"Description:",
         html.Br(),
         dcc.Textarea(id={'type': 'input-field', 'section': 'cultivar', 'index': "description"},
