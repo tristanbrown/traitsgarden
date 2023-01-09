@@ -52,218 +52,226 @@ class DetailsDisplay():
 
     def get_section2(self):
         if self.plantid:
-            return self.get_obj_display(Plant, self.plantid, display_plant)
+            return self.get_obj_display(Plant, self.plantid, InputFormPlant)
         elif self.seedsid:
-            return self.get_obj_display(Seeds, self.seedsid, display_seeds)
+            return self.get_obj_display(Seeds, self.seedsid, InputFormSeeds)
 
     def get_section1(self):
-        return self.get_obj_display(Cultivar, self.cultivarid, display_cultivar)
+        return self.get_obj_display(Cultivar, self.cultivarid, InputFormCultivar)
 
-    def get_obj_display(self, model, obj_id, display_func):
+    def get_obj_display(self, model, obj_id, display_class):
         with Session.begin() as session:
             obj = model.get(session, obj_id)
             try:
                 self.cultivarid = obj.cultivar.id
             except AttributeError:
                 pass
-            return display_func(obj)
+            return display_class(obj).layout
 
-def display_cultivar(obj):
-    layout = html.Div([
-        dbc.Row([
-            dbc.Col(html.H2(obj.name), width='auto'),
-            dbc.Col([
-                dbc.Button('Add Cultivar', id='add-cultivar-open', n_clicks=0),
-                cultivar_add_display
-            ], width='auto'),
-            dbc.Col([
-                dbc.Button('Delete Cultivar', id='delete-cultivar-open', n_clicks=0),
-            ])
-        ],
-        align='center',
-        justify="start"
-        ),
-        html.H3(obj.category),
-        "Species: ",
-        generic_text_input(obj, 'cultivar', 'species'),
-        html.Br(),
-        dbc.Row(
-            generic_checkbox(obj, 'cultivar', 'hybrid', "Hybrid"),
-        ),
-        f"Description:",
-        html.Br(),
-        generic_text_box(obj, 'cultivar', 'description'),
-        html.Br(),
-        dbc.Row([
-            dbc.Col([
-                dbc.Button('Add Seeds',
-                    id={'type': 'open-dialogue', 'index': "add-seeds"},
-                    n_clicks=0),
-                add_display_modal('seeds')
-                ], width='auto'),
-            dbc.Col([
-                dbc.Button('Add Plant',
-                    id={'type': 'open-dialogue', 'index': "add-plant"},
-                    n_clicks=0),
-                add_display_modal('plant')
-                ], width='auto')
-        ],
-        align='center',
-        justify="start"
-        )
-
-    ])
-    return layout
-
-def display_seeds(obj):
-    def text_input(fieldname, in_type='text'):
-        return generic_text_input(obj, 'seeds', fieldname, in_type)
-
-    def text_box(fieldname):
-        return generic_text_box(obj, 'seeds', fieldname)
-
-    parents = [
-        f"{parent.name} {parent.plant_id}" for parent in obj.parents]
-    layout = html.Div([
-        html.H3("Seeds"),
-        f"ID: {obj.pkt_id}",
-        html.Br(),
-        f"Source: ",
-        text_input('source'),
-        html.Br(),
-        f"Generation: ",
-        text_input('generation'),
-        html.Br(),
-        f"Last Count: ",
-        text_input('last_count', in_type='number'),
-        html.Br(),
-        f"Parents: {', '.join(parents)}",
-        html.Br(),
-        f"Variant Notes: ",
-        html.Br(),
-        text_box('variant_notes'),
-    ])
-    return layout
-
-def display_plant(obj):
-    def date_input(fieldname):
-        return generic_date_input(obj, 'plant', fieldname)
-
-    def text_input(fieldname, in_type='text'):
-        return generic_text_input(obj, 'plant', fieldname, in_type)
-
-    def text_box(fieldname):
-        return generic_text_box(obj, 'plant', fieldname)
-
-    def checkbox(fieldname, title):
-        return generic_checkbox(obj, 'plant', fieldname, title)
-
-    layout = html.Div([
-        html.H3("Plant"),
-        f"ID: {obj.plant_id}",
-        html.Br(),
-        dbc.Row([
-            checkbox('active', "Active"),
-            checkbox('seeds_collected', "Seeds coll")
-        ]),
-        dbc.Row([
-            dbc.Col(["Start", html.Br(), date_input('start_date')], width=1),
-            dbc.Col(["Germination", html.Br(), date_input('germ_date')], width=1),
-            dbc.Col(["Pot up", html.Br(), date_input('pot_up_date')], width=1),
-            dbc.Col(["Final pot", html.Br(), date_input('final_pot_date')], width=1),
-            dbc.Col(["First flower", html.Br(), date_input('flower_date')], width=1),
-            dbc.Col(["First fruit", html.Br(), date_input('fruit_date')], width=1),
-            dbc.Col(["Died", html.Br(), date_input('died')], width=1),
-        ], justify='start'),
-        html.Br(),
-        f"Conditions: ",
-        text_input('conditions'),
-        html.Br(),
-        dbc.Row(checkbox('staked', "Staked")),
-        f"Variant Notes: ",
-        html.Br(),
-        text_box('variant_notes'),
-        html.Br(),
-        f"Growth: ",
-        text_input('growth'),
-        html.Br(),
-        dbc.Row([
-            dbc.Col("Height, Width: ", width='auto'),
-            dbc.Col(text_input('height', in_type='number'), width=1),
-            dbc.Col(text_input('width', in_type='number'), width=1),
-        ], justify='start'),
-        f"Fruit Description: ",
-        text_input('fruit_desc'),
-        html.Br(),
-        f"Fruit Flavor: ",
-        text_input('flavor'),
-        html.Br(),
-        f"Brix (sg): ",
-        text_input('brix_sg', in_type='number'),
-        html.Br(),
-        f"Health: ",
-        text_input('health'),
-        html.Br(),
-        dbc.Row([
-            dbc.Col(f"Powdery Mildew: ", width='auto'),
-            dbc.Col(dcc.Dropdown(
-                id={'type': 'input-field', 'section': 'plant', 'index': 'powdery_mildew'},
-                value=obj.powdery_mildew,
-                options=['low', 'med', 'high']
-            ), width=1)
-        ]),
-        f"Pros: ",
-        text_input('pros'),
-        html.Br(),
-        f"Cons: ",
-        text_input('cons'),
-        html.Br(),
-        dbc.Row([
-            dbc.Col("Ratings: ", width=1),
-            dbc.Col(["Flavor", html.Br(), text_input('flavor_rating', in_type='number')], width=1),
-            dbc.Col(["Growth", html.Br(), text_input('growth_rating', in_type='number')], width=1),
-            dbc.Col(["Health", html.Br(), text_input('health_rating', in_type='number')], width=1),
-        ], justify='start'),
-    ])
-    return layout
-
-def generic_text_input(obj, section, fieldname, in_type='text'):
-    """Returns a text input field indexed to the model attribute.
-    in_type can be: text, number
-    """
-    return dcc.Input(
-            id={'type': 'input-field', 'section': section, 'index': fieldname},
-            type=in_type,
-            value=getattr(obj, fieldname),
-        )
-
-def generic_date_input(obj, section, fieldname):
-    """Returns a date input field indexed to the model attribute."""
-    return dcc.DatePickerSingle(
-            id={'type': 'date-field', 'section': section, 'index': fieldname},
-            date=getattr(obj, fieldname),
-        )
-
-def generic_text_box(obj, section, fieldname):
-    """Returns a large textbox input field indexed to the model attribute.
-    """
-    return dcc.Textarea(
-            id={'type': 'input-field', 'section': section, 'index': fieldname},
-            style={'width': '30%', 'height': 55},
-            value=getattr(obj, fieldname),
-        )
-
-def generic_checkbox(obj, section, fieldname, title):
+class InputForm():
     """"""
-    return dbc.Col(
-        dbc.Checkbox(
-            id={'type': 'input-field', 'section': section, 'index': fieldname},
-            label=f"{title}: ",
-            label_style={'float': 'left'},
-            input_style={'float': 'right'},
-            value=getattr(obj, fieldname),
-        ), width=1, align='left', className="g-0"
-    )
+
+    def __init__(self, obj, sectionname):
+        self.obj = obj
+        self.section = sectionname
+        self.layout = self.get_layout(self.obj)
+
+    def get_layout(self, obj):
+        return html.Div()
+
+    def text_input(self, fieldname, in_type='text'):
+        """Returns a text input field indexed to the model attribute.
+        in_type can be: text, number
+        """
+        return dcc.Input(
+                id={'type': 'input-field', 'section': self.section, 'index': fieldname},
+                type=in_type,
+                value=getattr(self.obj, fieldname),
+            )
+
+    def date_input(self, fieldname):
+        """Returns a date input field indexed to the model attribute."""
+        return dcc.DatePickerSingle(
+                id={'type': 'date-field', 'section': self.section, 'index': fieldname},
+                date=getattr(self.obj, fieldname),
+            )
+
+    def text_box(self, fieldname):
+        """Returns a large textbox input field indexed to the model attribute.
+        """
+        return dcc.Textarea(
+                id={'type': 'input-field', 'section': self.section, 'index': fieldname},
+                style={'width': '30%', 'height': 55},
+                value=getattr(self.obj, fieldname),
+            )
+
+    def checkbox(self, fieldname, title):
+        """"""
+        return dbc.Col(
+            dbc.Checkbox(
+                id={'type': 'input-field', 'section': self.section, 'index': fieldname},
+                label=f"{title}: ",
+                label_style={'float': 'left'},
+                input_style={'float': 'right'},
+                value=getattr(self.obj, fieldname),
+            ), width=1, align='left', className="g-0"
+        )
+
+class InputFormCultivar(InputForm):
+
+    def __init__(self, obj):
+        super().__init__(obj, 'cultivar')
+
+    def get_layout(self, obj):
+        layout = html.Div([
+            dbc.Row([
+                dbc.Col(html.H2(obj.name), width='auto'),
+                dbc.Col([
+                    dbc.Button('Add Cultivar', id='add-cultivar-open', n_clicks=0),
+                    cultivar_add_display
+                ], width='auto'),
+                dbc.Col([
+                    dbc.Button('Delete Cultivar', id='delete-cultivar-open', n_clicks=0),
+                ])
+            ],
+            align='center',
+            justify="start"
+            ),
+            html.H3(obj.category),
+            "Species: ",
+            self.text_input('species'),
+            html.Br(),
+            dbc.Row(
+                self.checkbox('hybrid', "Hybrid"),
+            ),
+            f"Description:",
+            html.Br(),
+            self.text_box('description'),
+            html.Br(),
+            dbc.Row([
+                dbc.Col([
+                    dbc.Button('Add Seeds',
+                        id={'type': 'open-dialogue', 'index': "add-seeds"},
+                        n_clicks=0),
+                    add_display_modal('seeds')
+                    ], width='auto'),
+                dbc.Col([
+                    dbc.Button('Add Plant',
+                        id={'type': 'open-dialogue', 'index': "add-plant"},
+                        n_clicks=0),
+                    add_display_modal('plant')
+                    ], width='auto')
+            ],
+            align='center',
+            justify="start"
+            )
+
+        ])
+        return layout
+
+class InputFormSeeds(InputForm):
+
+    def __init__(self, obj):
+        super().__init__(obj, 'seeds')
+
+    def get_layout(self, obj):
+        parents = [
+            f"{parent.name} {parent.plant_id}" for parent in obj.parents]
+        layout = html.Div([
+            html.H3("Seeds"),
+            f"ID: {obj.pkt_id}",
+            html.Br(),
+            f"Source: ",
+            self.text_input('source'),
+            html.Br(),
+            f"Generation: ",
+            self.text_input('generation'),
+            html.Br(),
+            f"Last Count: ",
+            self.text_input('last_count', in_type='number'),
+            html.Br(),
+            f"Parents: {', '.join(parents)}",
+            html.Br(),
+            f"Variant Notes: ",
+            html.Br(),
+            self.text_box('variant_notes'),
+        ])
+        return layout
+
+class InputFormPlant(InputForm):
+
+    def __init__(self, obj):
+        super().__init__(obj, 'plant')
+
+    def get_layout(self, obj):
+        layout = html.Div([
+            html.H3("Plant"),
+            f"ID: {obj.plant_id}",
+            html.Br(),
+            dbc.Row([
+                self.checkbox('active', "Active"),
+                self.checkbox('seeds_collected', "Seeds coll")
+            ]),
+            dbc.Row([
+                dbc.Col(["Start", html.Br(), self.date_input('start_date')], width=1),
+                dbc.Col(["Germination", html.Br(), self.date_input('germ_date')], width=1),
+                dbc.Col(["Pot up", html.Br(), self.date_input('pot_up_date')], width=1),
+                dbc.Col(["Final pot", html.Br(), self.date_input('final_pot_date')], width=1),
+                dbc.Col(["First flower", html.Br(), self.date_input('flower_date')], width=1),
+                dbc.Col(["First fruit", html.Br(), self.date_input('fruit_date')], width=1),
+                dbc.Col(["Died", html.Br(), self.date_input('died')], width=1),
+            ], justify='start'),
+            html.Br(),
+            f"Conditions: ",
+            self.text_input('conditions'),
+            html.Br(),
+            dbc.Row(self.checkbox('staked', "Staked")),
+            f"Variant Notes: ",
+            html.Br(),
+            self.text_box('variant_notes'),
+            html.Br(),
+            f"Growth: ",
+            self.text_input('growth'),
+            html.Br(),
+            dbc.Row([
+                dbc.Col("Height, Width: ", width='auto'),
+                dbc.Col(self.text_input('height', in_type='number'), width=1),
+                dbc.Col(self.text_input('width', in_type='number'), width=1),
+            ], justify='start'),
+            f"Fruit Description: ",
+            self.text_input('fruit_desc'),
+            html.Br(),
+            f"Fruit Flavor: ",
+            self.text_input('flavor'),
+            html.Br(),
+            f"Brix (sg): ",
+            self.text_input('brix_sg', in_type='number'),
+            html.Br(),
+            f"Health: ",
+            self.text_input('health'),
+            html.Br(),
+            dbc.Row([
+                dbc.Col(f"Powdery Mildew: ", width='auto'),
+                dbc.Col(dcc.Dropdown(
+                    id={'type': 'input-field', 'section': 'plant', 'index': 'powdery_mildew'},
+                    value=obj.powdery_mildew,
+                    options=['low', 'med', 'high']
+                ), width=1)
+            ]),
+            f"Pros: ",
+            self.text_input('pros'),
+            html.Br(),
+            f"Cons: ",
+            self.text_input('cons'),
+            html.Br(),
+            dbc.Row([
+                dbc.Col("Ratings: ", width=1),
+                dbc.Col(["Flavor", html.Br(), self.text_input('flavor_rating', in_type='number')], width=1),
+                dbc.Col(["Growth", html.Br(), self.text_input('growth_rating', in_type='number')], width=1),
+                dbc.Col(["Health", html.Br(), self.text_input('health_rating', in_type='number')], width=1),
+            ], justify='start'),
+        ])
+        return layout
 
 @callback(
     Output('save-status', 'children'),
