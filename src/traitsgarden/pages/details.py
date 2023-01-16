@@ -6,6 +6,7 @@ from traitsgarden.db.connect import Session
 from traitsgarden.db.entry import update_one_obj
 from traitsgarden.db.models import Plant, Seeds, Cultivar
 from traitsgarden.fragments.add_cultivar_display import cultivar_add_display
+from traitsgarden.fragments.rename_cultivar_display import cultivar_rename_display
 from traitsgarden.fragments.add_obj_display import add_display_modal
 from traitsgarden.fragments.delete_obj import del_display
 
@@ -125,7 +126,7 @@ class InputFormCultivar(InputForm):
     def get_layout(self, obj):
         layout = html.Div([
             dbc.Row([
-                dbc.Col(html.H2(obj.name), width='auto'),
+                # dbc.Col(, width='auto'),
                 dbc.Col([
                     dbc.Button('Add Cultivar', id='add-cultivar-open', n_clicks=0),
                     cultivar_add_display
@@ -133,9 +134,19 @@ class InputFormCultivar(InputForm):
                 dbc.Col([
                     dbc.Button('Delete Cultivar', id='delete-cultivar-open', n_clicks=0),
                 ])
-            ],
-            align='center',
-            justify="start"
+                ],
+                align='center',
+                justify="start"
+            ),
+            dbc.Row([
+                dbc.Col(html.H2(obj.name), width='auto'),
+                dbc.Col([
+                    dbc.Button('Rename', id='rename-cultivar-open', n_clicks=0),
+                    cultivar_rename_display(obj.id)
+                ], width='auto'),
+                ],
+                align='center',
+                justify="start"
             ),
             html.H3(obj.category),
             "Species: ",
