@@ -2,11 +2,10 @@ from sqlalchemy import select
 from dash import dcc, html, callback, ctx, register_page
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
+import dash_bootstrap_components as dbc
 from traitsgarden.db.connect import Session
 from traitsgarden.db.models import Plant, Seeds, Cultivar
 from traitsgarden.db.query import query_orm
-
-import dash_bootstrap_components as dbc
 
 search_bar = dbc.Row([
     dbc.Col(dcc.Dropdown(id="cultivar-dropdown", placeholder="Cultivar",), width=3),
@@ -59,21 +58,7 @@ def update_cultivar(search_value):
     Input("cultivar-dropdown", "value"),
 )
 def update_seedsid(search_value, cultivar):
-    if not cultivar:
-        return []
-    if not search_value:
-        search_value = ''
-    stmt = select(Seeds).where(
-        Seeds.pkt_id.ilike(f'{search_value}%')
-    )
-    if cultivar:
-        category, name = parse_cultivar(cultivar)
-        stmt = stmt.where(
-            Seeds.name == name, Seeds.category == category)
-    with Session.begin() as session:
-        result = query_orm(session, stmt)
-        pkt_ids = {obj.pkt_id for obj in result}
-    return list(pkt_ids)
+    return update_search_ids(search_value, cultivar, Seeds)
 
 @callback(
     Output("plantid-dropdown", "options"),
@@ -81,21 +66,30 @@ def update_seedsid(search_value, cultivar):
     Input("cultivar-dropdown", "value"),
 )
 def update_plantid(search_value, cultivar):
+    return update_search_ids(search_value, cultivar, Plant)
+
+def update_search_ids(search_value, cultivar, model):
+    id_type = {
+        Seeds: 'pkt_id',
+        Plant: 'plant_id'
+    }
+    model_id = id_type[model]
+
     if not cultivar:
         return []
     if not search_value:
         search_value = ''
-    stmt = select(Plant).where(
-        Plant.plant_id.ilike(f'{search_value}%')
+    stmt = select(model).where(
+        getattr(model, model_id).ilike(f'{search_value}%')
     )
     if cultivar:
         category, name = parse_cultivar(cultivar)
         stmt = stmt.where(
-            Plant.name == name, Plant.category == category)
+            model.name == name, model.category == category)
     with Session.begin() as session:
         result = query_orm(session, stmt)
-        plant_ids = {obj.plant_id for obj in result}
-    return list(plant_ids)
+        obj_ids = {getattr(obj, model_id) for obj in result}
+    return sorted(list(obj_ids))
 
 @callback(
     Output("seedsid-dropdown", "value"),

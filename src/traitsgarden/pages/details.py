@@ -9,6 +9,7 @@ from traitsgarden.fragments.add_cultivar_display import cultivar_add_display
 from traitsgarden.fragments.rename_cultivar_display import cultivar_rename_display
 from traitsgarden.fragments.add_obj_display import add_display_modal
 from traitsgarden.fragments.delete_obj import del_display
+from traitsgarden.fragments.dropdown_ids import display_dropdown_ids
 
 register_page(__name__, path='/traitsgarden/details')
 
@@ -126,7 +127,6 @@ class InputFormCultivar(InputForm):
     def get_layout(self, obj):
         layout = html.Div([
             dbc.Row([
-                # dbc.Col(, width='auto'),
                 dbc.Col([
                     dbc.Button('Add Cultivar', id='add-cultivar-open', n_clicks=0),
                     cultivar_add_display
@@ -190,7 +190,11 @@ class InputFormSeeds(InputForm):
             f"{parent.name} {parent.plant_id}" for parent in obj.parents]
         layout = html.Div([
             html.H3("Seeds"),
-            f"ID: {obj.pkt_id}",
+            dbc.Row([
+                dbc.Col("ID:", width='auto'),
+                dbc.Col(display_dropdown_ids(obj.category, obj.name, Seeds, obj.pkt_id),
+                    width=1),
+            ]),
             html.Br(),
             f"Source: ",
             self.text_input('source'),
