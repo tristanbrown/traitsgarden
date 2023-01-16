@@ -47,7 +47,7 @@ class SeedLibrary():
         dupes = cult_table[cult_table.duplicated(subset=['name', 'category'], keep=False)].sort_values(['name', 'description'])
         dupes_keep = dupes.dropna(subset='description')
         dupes2 = dupes_keep[dupes_keep.duplicated(subset=['name', 'category'], keep=False)].sort_values(['name', 'description'])
-        dupes_keep = dupes_keep.drop([36, 37, 34, 161, 43, 73, 12, 14, 17, 13, 145, 146, 152, 54, 55, 158, 79, 128], axis=0)
+        dupes_keep = dupes_keep.drop([36, 37, 34, 164, 43, 74, 61, 12, 14, 17, 13, 147, 148, 155, 54, 55, 158, 80, 131], axis=0)
         dupes_drop = dupes.loc[~dupes.index.isin(dupes_keep.index),:]
         cult_table = cult_table.loc[~cult_table.index.isin(dupes_drop.index),:]
 
