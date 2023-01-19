@@ -7,13 +7,17 @@ from traitsgarden.db.models import Plant, Seeds, Cultivar
 from traitsgarden.db.query import query_orm
 from traitsgarden.fragments.shared import dropdown_options_input
 
-def add_display_modal(objname):
+def add_display_modal(objname, name=None, category=None):
     index = f"add-{objname}"
+    if name and category:
+        cultivar = f"{name}|{category}"
+    else:
+        cultivar = None
     return dbc.Modal([
         dbc.ModalHeader(dbc.ModalTitle(f"Add {objname.capitalize()}", id='dialogue-title')),
         dbc.ModalBody([
             dcc.Dropdown(id={'type': 'cultivar_select', 'index': index},
-                placeholder="Cultivar"),
+                placeholder="Cultivar", value=cultivar),
             dbc.Input(id={'type': 'basic-input', 'index': index},
                 placeholder=f'{objname.capitalize()} ID (optional)')
             ]),

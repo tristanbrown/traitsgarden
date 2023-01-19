@@ -164,13 +164,13 @@ class InputFormCultivar(InputForm):
                     dbc.Button('Add Seeds',
                         id={'type': 'open-dialogue', 'index': "add-seeds"},
                         n_clicks=0),
-                    add_display_modal('seeds')
+                    add_display_modal('seeds', obj.name, obj.category)
                     ], width='auto'),
                 dbc.Col([
                     dbc.Button('Add Plant',
                         id={'type': 'open-dialogue', 'index': "add-plant"},
                         n_clicks=0),
-                    add_display_modal('plant')
+                    add_display_modal('plant', obj.name, obj.category)
                     ], width='auto')
             ],
             align='center',
