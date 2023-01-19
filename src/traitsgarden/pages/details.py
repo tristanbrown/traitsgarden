@@ -221,7 +221,11 @@ class InputFormPlant(InputForm):
     def get_layout(self, obj):
         layout = html.Div([
             html.H3("Plant"),
-            f"ID: {obj.plant_id}",
+            dbc.Row([
+                dbc.Col("ID:", width='auto'),
+                dbc.Col(display_dropdown_ids(obj.category, obj.name, Plant, obj.plant_id),
+                    width=1),
+            ]),
             html.Br(),
             dbc.Row([
                 self.checkbox('active', "Active"),
