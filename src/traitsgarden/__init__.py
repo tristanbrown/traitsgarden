@@ -9,7 +9,9 @@ from traitsgarden.db.connect import Session, connect_db
 from traitsgarden.fragments.navbar import navbar, offcanvas
 
 external_stylesheets = [dbc.themes.COSMO]
-app = Dash(__name__, external_stylesheets=external_stylesheets, use_pages=True)
+app = Dash(__name__, external_stylesheets=external_stylesheets, use_pages=True,
+           url_base_pathname=f"/traitsgarden/",
+          )
 server = app.server
 server.config.from_object(Config())
 app.config.suppress_callback_exceptions = True

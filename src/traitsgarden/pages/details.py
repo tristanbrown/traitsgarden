@@ -11,7 +11,7 @@ from traitsgarden.fragments.add_obj_display import add_display_modal
 from traitsgarden.fragments.delete_obj import del_display
 from traitsgarden.fragments.dropdown_ids import display_dropdown_ids
 
-register_page(__name__, path='/traitsgarden/details')
+register_page(__name__, path='/details')
 
 def layout(cultivarid=None, seedsid=None, plantid=None):
     if cultivarid == seedsid == plantid == None:

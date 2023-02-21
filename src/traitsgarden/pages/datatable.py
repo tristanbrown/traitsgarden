@@ -7,7 +7,7 @@ from traitsgarden.db.connect import Session
 from traitsgarden.db.query import query_as_df
 from traitsgarden.db.models import Plant, Seeds, Cultivar
 
-register_page(__name__, path='/traitsgarden/table')
+register_page(__name__, path='/table')
 
 def layout(name=None):
     table = select_table(name)

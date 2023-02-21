@@ -136,7 +136,7 @@ def search_go(cultivar, seedsid, plantid):
             obj = Cultivar.query(session, name, category)
             itemtype = 'cultivar'
         if obj:
-                return f"/traitsgarden/details?{itemtype}id={obj.id}"
+                return f"details?{itemtype}id={obj.id}"
     raise PreventUpdate
 
 def parse_cultivar(label):

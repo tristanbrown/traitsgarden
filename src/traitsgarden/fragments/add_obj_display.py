@@ -78,5 +78,5 @@ def save_changes(n_clicks, index, obj_id, cultivar):
     with Session.begin() as session:
         obj = model.query(session, name, category, obj_id)
         if obj:
-            return None, None, f"/traitsgarden/details?{objtype}id={obj.id}"
+            return None, None, f"details?{objtype}id={obj.id}"
     return None, None, ''

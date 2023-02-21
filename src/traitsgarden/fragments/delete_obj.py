@@ -63,5 +63,5 @@ def delete_obj(n_clicks, obj_data):
         obj = models[obj_data['model']].get(session, obj_data['id'])
         if obj:
             obj.delete(session)
-            return f"/traitsgarden/table?name={obj_data['model']}"
+            return f"table?name={obj_data['model']}"
     return ''

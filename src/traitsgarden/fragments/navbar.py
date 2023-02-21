@@ -1,7 +1,6 @@
 from dash import dcc, html, callback, register_page
 from dash.dependencies import Input, Output, State, MATCH, ALL
 import dash_bootstrap_components as dbc
-
 from traitsgarden.fragments.search import search_bar, search_col
 
 PLOTLY_LOGO = "https://images.plot.ly/logo/new-branding/plotly-logomark.png"
@@ -19,7 +18,7 @@ navbar = dbc.Navbar(
                     align="center",
                     className="g-0",
                 ),
-                href="/traitsgarden",
+                href=f"index",
                 style={"textDecoration": "none"},
             ),
             dbc.Button("Search", id="open-offcanvas", n_clicks=0),

@@ -67,5 +67,5 @@ def save_changes(n_clicks, ids, cultivar_name, category):
     with Session.begin() as session:
         for model in ('seeds', 'plant', 'cultivar'):
             if obj_id := ids[model]:
-                return None, None, f"/traitsgarden/details?{model}id={obj_id}"
+                return None, None, f"details?{model}id={obj_id}"
     return None, None, ''

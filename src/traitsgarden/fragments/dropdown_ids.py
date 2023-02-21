@@ -34,5 +34,5 @@ def new_id_go(all_ids, new_id):
     with Session.begin() as session:
         obj = model.query(session, name, category, new_id)
         if int(old_id) != obj.id:
-            return f"/traitsgarden/details?{modelname}id={obj.id}"
+            return f"details?{modelname}id={obj.id}"
     raise PreventUpdate

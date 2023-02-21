@@ -58,5 +58,5 @@ def save_changes(n_clicks, cultivar_name, category):
     with Session.begin() as session:
         obj = Cultivar.query(session, cultivar_name, category)
         if obj:
-            return None, None, f"/traitsgarden/details?cultivarid={obj.id}"
+            return None, None, f"details?cultivarid={obj.id}"
     return None, None, ''
