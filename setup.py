@@ -5,7 +5,7 @@ import __about__
 REQUIREMENTS = [
     'python-dotenv',
     'pandas>=1.1.0',
-    'psycopg2',
+    'psycopg2-binary',
     'sqlalchemy>=1.4.0',
     'alembic',
     'arrow',
