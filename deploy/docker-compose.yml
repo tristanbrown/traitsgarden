@@ -7,8 +7,6 @@ version: "3.7"
 services:
   app:
     image: tristanbrown/traitsgarden
-    build: 
-      context: ../
     networks: 
       - tanspaces
     expose:
