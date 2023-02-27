@@ -1,0 +1,25 @@
+### docker-compose.yml ###
+## Access the app at:
+## https://${HOSTNAME}:5000/traitsgarden/
+
+version: "3.7"
+
+services:
+  app:
+    image: tristanbrown/traitsgarden
+    build: 
+      context: ../
+    networks: 
+      - tanspaces
+    expose:
+      - "5000"
+    environment:
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    labels:
+      caddy: localhost:5000, ${HOSTNAME}:5000
+      caddy.reverse_proxy: /traitsgarden* "{{upstreams 5000}}"
+      caddy.tls: "internal"
+
+networks:
+  tanspaces:
+    external: true
