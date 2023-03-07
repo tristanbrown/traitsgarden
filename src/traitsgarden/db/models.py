@@ -97,7 +97,7 @@ class Seeds(DBObjMixin, Base):
     ## Parent/Child Relationships
     parentage = relationship('SeedParent', lazy='subquery')
     parents = association_proxy('parentage', 'plant')
-    mothers = association_proxy('parentage', 'mother')
+    is_mother = association_proxy('parentage', 'mother')
 
     ## Seeds Data
     source = Column(String(length=120))
@@ -178,6 +178,14 @@ class Seeds(DBObjMixin, Base):
         if parent_plant not in self.parents:
             parent_assoc = SeedParent(
                 seeds=self, plant=parent_plant, mother=mother)
+
+    ## Additional attributes
+
+    def get_mothers(self, session):
+        return [parent for parent, ismother in zip(obj.parents, obj.is_mother) if ismother]
+
+    def get_fathers(self, session):
+        return [parent for parent, ismother in zip(obj.parents, obj.is_mother) if not ismother]
 
 class Plant(DBObjMixin, Base):
     __tablename__ = 'plant'
