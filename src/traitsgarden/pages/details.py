@@ -8,6 +8,7 @@ from traitsgarden.db.models import Plant, Seeds, Cultivar
 from traitsgarden.fragments.add_cultivar_display import cultivar_add_display
 from traitsgarden.fragments.rename_cultivar_display import cultivar_rename_display
 from traitsgarden.fragments.add_obj_display import add_display_modal
+from traitsgarden.fragments.edit_parents_display import edit_parents_modal
 from traitsgarden.fragments.delete_obj import del_display
 from traitsgarden.fragments.dropdown_ids import display_dropdown_ids
 
@@ -205,7 +206,13 @@ class InputFormSeeds(InputForm):
             f"Last Count: ",
             self.text_input('last_count', in_type='number'),
             html.Br(),
-            f"Parents: {', '.join(parents)}",
+            dbc.Row([
+                dbc.Col(f"Parents: {', '.join(parents)}", width='auto'),
+                dbc.Col(dbc.Button('Edit',
+                    id={'type': 'open-dialogue', 'index': "edit-parents"},
+                    n_clicks=0), width='auto'),
+                dbc.Col(edit_parents_modal(obj.name, obj.category, obj.pkt_id), width='auto')
+            ]),
             html.Br(),
             f"Variant Notes: ",
             html.Br(),

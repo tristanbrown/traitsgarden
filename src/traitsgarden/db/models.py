@@ -182,10 +182,10 @@ class Seeds(DBObjMixin, Base):
     ## Additional attributes
 
     def get_mothers(self, session):
-        return [parent for parent, ismother in zip(obj.parents, obj.is_mother) if ismother]
+        return [parent for parent, ismother in zip(self.parents, self.is_mother) if ismother]
 
     def get_fathers(self, session):
-        return [parent for parent, ismother in zip(obj.parents, obj.is_mother) if not ismother]
+        return [parent for parent, ismother in zip(self.parents, self.is_mother) if not ismother]
 
 class Plant(DBObjMixin, Base):
     __tablename__ = 'plant'
