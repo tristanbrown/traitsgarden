@@ -13,20 +13,17 @@ def edit_parents_modal(name, category, pkt_id):
         cultivar = f"{name}|{category}"
     else:
         cultivar = None
-    with Session.begin() as session:
-        obj = Seeds.query(session, name, category, pkt_id)
-        mothers = [parent.__repr__() for parent in obj.get_mothers(session)]
-        fathers = [parent.__repr__() for parent in obj.get_fathers(session)]
+    parent_boxes = get_parent_boxes(name, category, pkt_id)
     return dbc.Modal([
         dbc.ModalHeader(dbc.ModalTitle(f"Edit Seeds Parents")),
         dbc.ModalBody([
             "Mothers:",
             html.Br(),
-            ", ".join(mothers),
+            *parent_boxes['mothers'],
             html.Br(),
             "Fathers:",
             html.Br(),
-            ", ".join(fathers),
+            *parent_boxes['fathers'],
             ]),
         dbc.ModalBody([
             dcc.Dropdown(id={'type': 'cultivar_select', 'index': index},
@@ -39,6 +36,32 @@ def edit_parents_modal(name, category, pkt_id):
                 dbc.Button("Save", id={'type': 'save-dialogue', 'index': index}),
                 ])
     ], id={'type': 'dialogue', 'index': index})
+
+def get_parent_boxes(name, category, pkt_id):
+    with Session.begin() as session:
+        obj = Seeds.query(session, name, category, pkt_id)
+        parent_objs = obj.get_parents(session)
+        parent_names = {
+            label: [
+                {'id': parent.id, 'name': parent.__repr__()}
+                for parent in parent_group
+            ]
+            for label, parent_group in parent_objs.items()
+        }
+
+    parent_boxes = {}
+    for label, parent_group in parent_names.items():
+        parent_boxes[label] = [
+            dbc.InputGroup([
+                dbc.Button(
+                    "X",
+                    id={'type': 'delete-parent', 'index': parent['id']},
+                    n_clicks=0),
+                dbc.InputGroupText(parent['name'])
+            ], size='sm')
+            for parent in parent_group
+        ]
+    return parent_boxes
 
 # @callback(
 #     Output({'type': 'dialogue', 'index': MATCH}, "is_open"),
