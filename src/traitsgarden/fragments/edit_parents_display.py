@@ -1,5 +1,5 @@
 from sqlalchemy import select
-from dash import dcc, html, callback, callback_context, register_page
+from dash import dcc, html, callback, ctx
 from dash.dependencies import Input, Output, State, MATCH, ALL
 import dash_bootstrap_components as dbc
 from traitsgarden.db.connect import Session
@@ -13,18 +13,10 @@ def edit_parents_modal(name, category, pkt_id):
         cultivar = f"{name}|{category}"
     else:
         cultivar = None
-    parent_boxes = get_parent_boxes(name, category, pkt_id)
     return dbc.Modal([
         dbc.ModalHeader(dbc.ModalTitle(f"Edit Seeds Parents")),
-        dbc.ModalBody([
-            "Mothers:",
-            html.Br(),
-            *parent_boxes['mothers'],
-            html.Br(),
-            "Fathers:",
-            html.Br(),
-            *parent_boxes['fathers'],
-            ]),
+        init_parents_store(name, category, pkt_id),
+        dbc.ModalBody(id={'type': 'dialogue-body', 'index': index}),
         dbc.ModalBody([
             dcc.Dropdown(id={'type': 'cultivar_select', 'index': index},
                 placeholder="Cultivar", value=cultivar),
@@ -37,31 +29,67 @@ def edit_parents_modal(name, category, pkt_id):
                 ])
     ], id={'type': 'dialogue', 'index': index})
 
-def get_parent_boxes(name, category, pkt_id):
+def init_parents_store(name, category, pkt_id):
     with Session.begin() as session:
         obj = Seeds.query(session, name, category, pkt_id)
         parent_objs = obj.get_parents(session)
         parent_names = {
-            label: [
-                {'id': parent.id, 'name': parent.__repr__()}
-                for parent in parent_group
-            ]
+            label: {
+                parent.id: parent.__repr__() for parent in parent_group
+            }
             for label, parent_group in parent_objs.items()
         }
+    return dcc.Store(id='seedparent-store', data=parent_names)
 
+@callback(
+    Output('seedparent-store', 'data'),
+    # Input({'type': 'open-dialogue', 'index': 'edit-parents'}, 'n_clicks'),
+    Input({'type': 'delete-parent', 'index': ALL}, 'n_clicks'),
+    State('seedparent-store', 'data'),
+    prevent_initial_call=True,
+)
+def update_seedparent_store(del_click, parent_names):
+    button_id = ctx.triggered_id
+    print(button_id)
+    any_clicks = any(ctx.inputs.values())
+    # if button_id['type'] == 'open-dialogue':
+
+    if button_id['type'] == 'delete-parent' and any_clicks:
+        del_parent_type, del_parent_id = button_id['index'].split('=')
+        parent_names[del_parent_type].pop(del_parent_id, None)
+    return parent_names
+
+@callback(
+    Output({'type': 'dialogue-body', 'index': "edit-parents"}, 'children'),
+    Input({'type': 'open-dialogue', 'index': "edit-parents"}, 'n_clicks'),
+    # Input({'type': 'delete-parent', 'index': MATCH}, 'n_clicks'),
+    # State({'type': 'delete-parent', 'index': MATCH}, 'id'),
+    Input('seedparent-store', 'data'),
+)
+def get_parent_boxes(open_clicks, parent_names):
+    """"""
     parent_boxes = {}
     for label, parent_group in parent_names.items():
         parent_boxes[label] = [
             dbc.InputGroup([
                 dbc.Button(
                     "X",
-                    id={'type': 'delete-parent', 'index': parent['id']},
+                    id={'type': 'delete-parent', 'index': f"{label}={id}"},
                     n_clicks=0),
-                dbc.InputGroupText(parent['name'])
+                dbc.InputGroupText(name)
             ], size='sm')
-            for parent in parent_group
+            for id, name in parent_group.items()
         ]
-    return parent_boxes
+    deletable_parents = [
+        "Mothers:",
+        html.Br(),
+        *parent_boxes['mothers'],
+        html.Br(),
+        "Fathers:",
+        html.Br(),
+        *parent_boxes['fathers'],
+    ]
+    return deletable_parents
 
 # @callback(
 #     Output({'type': 'dialogue', 'index': MATCH}, "is_open"),
