@@ -9,40 +9,30 @@ from traitsgarden.fragments.shared import dropdown_options_input
 
 def cultivar_update_display(obj_id=None):
     if obj_id is None:
-        index = 'add'
+        action = 'add'
         objname = category = None
     else:
-        index = 'rename'
+        action = 'rename'
         with Session.begin() as session:
             obj = Cultivar.get(session, obj_id)
             objname = obj.name
             category = obj.category
+    index = f"{action}-cultivar"
     return dbc.Modal([
         dbc.ModalHeader(dbc.ModalTitle(f"{index.capitalize()} Cultivar")),
         dbc.ModalBody([
             dbc.Row(dbc.Col(dbc.Input(
-                id={'type': 'cultivar-input', 'index': index},
+                id={'type': 'basic-input', 'index': index},
                 placeholder='Cultivar Name', value=objname))),
             dbc.Row(dbc.Col(dcc.Dropdown(
                 id={'type': 'category-dropdown', 'index': index},
                 placeholder="Category", value=category)))
             ]),
         dbc.ModalFooter([
-                dcc.Location(id={'type': 'cultivar-link', 'index': index}, refresh=True),
-                dbc.Button("Save", id={'type': 'save-cultivar', 'index': index}),
+                dcc.Location(id={'type': 'save-redirect', 'index': index}, refresh=True),
+                dbc.Button("Save", id={'type': 'save-dialogue', 'index': index}),
                 ])
-    ], id={'type': 'update-cultivar-modal', 'index': index})
-
-@callback(
-    Output({'type': 'update-cultivar-modal', 'index': MATCH}, "is_open"),
-    [Input({'type': 'update-cultivar-open', 'index': MATCH}, "n_clicks"),
-    Input({'type': 'save-cultivar', 'index': MATCH}, "n_clicks")],
-    [State({'type': 'update-cultivar-modal', 'index': MATCH}, "is_open")],
-)
-def toggle_updatecultivar_dialogue(n_open, n_close, is_open):
-    if n_open or n_close:
-        return not is_open
-    return is_open
+    ], id={'type': 'dialogue', 'index': index})
 
 @callback(
     Output({'type': 'category-dropdown', 'index': MATCH}, "options"),
@@ -58,13 +48,18 @@ def update_category_options(search_value, input_value):
         result = session.execute(stmt).scalars().all()
     return result
 
+def get_cultivarsave_inputs(index):
+    return [
+        Output({'type': 'category-dropdown', 'index': index}, 'value'),
+        Output({'type': 'basic-input', 'index': index}, 'value'),
+        Output({'type': 'save-redirect', 'index': index}, 'href'),
+        Input({'type': 'save-dialogue', 'index': index}, 'n_clicks'),
+        State({'type': 'basic-input', 'index': index}, 'value'),
+        State({'type': 'category-dropdown', 'index': index}, 'value'),
+    ]
+
 @callback(
-    Output({'type': 'category-dropdown', 'index': 'add'}, 'value'),
-    Output({'type': 'cultivar-input', 'index': 'add'}, 'value'),
-    Output({'type': 'cultivar-link', 'index': 'add'}, 'href'),
-    Input({'type': 'save-cultivar', 'index': 'add'}, 'n_clicks'),
-    State({'type': 'cultivar-input', 'index': 'add'}, 'value'),
-    State({'type': 'category-dropdown', 'index': 'add'}, 'value'),
+    *get_cultivarsave_inputs('add-cultivar'),
     prevent_initial_call=True,
 )
 def save_add_cultivar(n_clicks, cultivar_name, category):
@@ -77,16 +72,11 @@ def save_add_cultivar(n_clicks, cultivar_name, category):
     return None, None, ''
 
 @callback(
-    Output({'type': 'category-dropdown', 'index': 'rename'}, 'value'),
-    Output({'type': 'cultivar-input', 'index': 'rename'}, 'value'),
-    Output({'type': 'cultivar-link', 'index': 'rename'}, 'href'),
-    Input({'type': 'save-cultivar', 'index': 'rename'}, 'n_clicks'),
+    *get_cultivarsave_inputs('rename-cultivar'),
     State('ids', 'data'),
-    State({'type': 'cultivar-input', 'index': 'rename'}, 'value'),
-    State({'type': 'category-dropdown', 'index': 'rename'}, 'value'),
     prevent_initial_call=True,
 )
-def save_rename_cultivar(n_clicks, ids, cultivar_name, category):
+def save_rename_cultivar(n_clicks, cultivar_name, category, ids):
     with Session.begin() as session:
         obj_id = ids['cultivar']
         obj = Cultivar.get(session, obj_id)

@@ -129,7 +129,7 @@ class InputFormCultivar(InputForm):
             dbc.Row([
                 dbc.Col([
                     dbc.Button('Add Cultivar',
-                        id={'type': 'update-cultivar-open', 'index': 'add'}, n_clicks=0),
+                        id={'type': 'open-dialogue', 'index': 'add-cultivar'}, n_clicks=0),
                     cultivar_update_display()
                 ], width='auto'),
                 dbc.Col([
@@ -143,7 +143,7 @@ class InputFormCultivar(InputForm):
                 dbc.Col(html.H2(obj.name), width='auto'),
                 dbc.Col([
                     dbc.Button('Rename',
-                        id={'type': 'update-cultivar-open', 'index': 'rename'}, n_clicks=0),
+                        id={'type': 'open-dialogue', 'index': 'rename-cultivar'}, n_clicks=0),
                     cultivar_update_display(obj.id)
                 ], width='auto'),
                 ],

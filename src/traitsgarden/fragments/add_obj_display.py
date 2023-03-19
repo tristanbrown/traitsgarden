@@ -38,29 +38,42 @@ def toggle_dialogue(n_open, n_close, is_open):
         return not is_open
     return is_open
 
+def get_objsave_inputs(index):
+    return [
+        Output({'type': 'cultivar-select', 'index': index}, 'value'),
+        Output({'type': 'basic-input', 'index': index}, 'value'),
+        Output({'type': 'save-redirect', 'index': index}, 'href'),
+        Input({'type': 'save-dialogue', 'index': index}, 'n_clicks'),
+        State({'type': 'basic-input', 'index': index}, 'value'),
+        State({'type': 'cultivar-select', 'index': index}, 'value'),
+    ]
+
 @callback(
-    Output({'type': 'cultivar-select', 'index': MATCH}, 'value'),
-    Output({'type': 'basic-input', 'index': MATCH}, 'value'),
-    Output({'type': 'save-redirect', 'index': MATCH}, 'href'),
-    Input({'type': 'save-dialogue', 'index': MATCH}, 'n_clicks'),
-    State({'type': 'save-dialogue', 'index': MATCH}, 'id'),
-    State({'type': 'basic-input', 'index': MATCH}, 'value'),
-    State({'type': 'cultivar-select', 'index': MATCH}, 'value'),
+    *get_objsave_inputs('add-seeds'),
     prevent_initial_call=True,
 )
-def save_changes(n_clicks, index, obj_id, cultivar):
-    objtype = index['index'].split('-')[-1]
-    models = {'seeds': Seeds, 'plant': Plant}
-    model = models[objtype]
+def save_seeds_changes(n_clicks, obj_id, cultivar):
     name, category = cultivar.split('|')
     with Session.begin() as session:
-        obj = model.add(session, name, category, obj_id)
-        if objtype == 'seeds':
-            obj_id = obj.pkt_id
-        elif objtype == 'plant':
-            obj_id = obj.plant_id
+        obj = Seeds.add(session, name, category, obj_id)
+        obj_id = obj.pkt_id
     with Session.begin() as session:
-        obj = model.query(session, name, category, obj_id)
+        obj = Seeds.query(session, name, category, obj_id)
         if obj:
-            return None, None, f"details?{objtype}id={obj.id}"
+            return None, None, f"details?seedsid={obj.id}"
+    return None, None, ''
+
+@callback(
+    *get_objsave_inputs('add-plant'),
+    prevent_initial_call=True,
+)
+def save_plant_changes(n_clicks, obj_id, cultivar):
+    name, category = cultivar.split('|')
+    with Session.begin() as session:
+        obj = Plant.add(session, name, category, obj_id)
+        obj_id = obj.plant_id
+    with Session.begin() as session:
+        obj = Plant.query(session, name, category, obj_id)
+        if obj:
+            return None, None, f"details?plantid={obj.id}"
     return None, None, ''
