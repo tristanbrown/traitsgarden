@@ -5,8 +5,7 @@ import dash_bootstrap_components as dbc
 from traitsgarden.db.connect import Session
 from traitsgarden.db.entry import update_one_obj
 from traitsgarden.db.models import Plant, Seeds, Cultivar
-from traitsgarden.fragments.add_cultivar_display import cultivar_add_display
-from traitsgarden.fragments.rename_cultivar_display import cultivar_rename_display
+from traitsgarden.fragments.update_cultivar_display import cultivar_update_display
 from traitsgarden.fragments.add_obj_display import add_display_modal
 from traitsgarden.fragments.edit_parents_display import edit_parents_modal
 from traitsgarden.fragments.delete_obj import del_display
@@ -129,8 +128,9 @@ class InputFormCultivar(InputForm):
         layout = html.Div([
             dbc.Row([
                 dbc.Col([
-                    dbc.Button('Add Cultivar', id='add-cultivar-open', n_clicks=0),
-                    cultivar_add_display
+                    dbc.Button('Add Cultivar',
+                        id={'type': 'update-cultivar-open', 'index': 'add'}, n_clicks=0),
+                    cultivar_update_display()
                 ], width='auto'),
                 dbc.Col([
                     dbc.Button('Delete Cultivar', id='delete-cultivar-open', n_clicks=0),
@@ -142,8 +142,9 @@ class InputFormCultivar(InputForm):
             dbc.Row([
                 dbc.Col(html.H2(obj.name), width='auto'),
                 dbc.Col([
-                    dbc.Button('Rename', id='rename-cultivar-open', n_clicks=0),
-                    cultivar_rename_display(obj.id)
+                    dbc.Button('Rename',
+                        id={'type': 'update-cultivar-open', 'index': 'rename'}, n_clicks=0),
+                    cultivar_update_display(obj.id)
                 ], width='auto'),
                 ],
                 align='center',
