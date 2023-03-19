@@ -18,10 +18,10 @@ def edit_parents_modal(name, category, pkt_id):
         dcc.Store(id='seedparent-store'),
         dbc.ModalBody(id={'type': 'dialogue-body', 'index': index}),
         dbc.ModalBody([
-            dcc.Dropdown(id={'type': 'cultivar_select', 'index': index},
+            dcc.Dropdown(id={'type': 'cultivar-select', 'index': index},
                 placeholder="Cultivar", value=cultivar),
-            dbc.Input(id={'type': 'basic-input', 'index': index},
-                placeholder=f'Seeds ID (optional)')
+            dcc.Dropdown(id={'type': 'plantid-dropdown', 'index': index},
+                placeholder="Plant ID"),
             ]),
         dbc.ModalFooter([
                 dcc.Location(id={'type': 'save-redirect', 'index': index}, refresh=True),

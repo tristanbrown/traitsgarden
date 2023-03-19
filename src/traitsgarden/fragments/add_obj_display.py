@@ -16,7 +16,7 @@ def add_display_modal(objname, name=None, category=None):
     return dbc.Modal([
         dbc.ModalHeader(dbc.ModalTitle(f"Add {objname.capitalize()}", id='dialogue-title')),
         dbc.ModalBody([
-            dcc.Dropdown(id={'type': 'cultivar_select', 'index': index},
+            dcc.Dropdown(id={'type': 'cultivar-select', 'index': index},
                 placeholder="Cultivar", value=cultivar),
             dbc.Input(id={'type': 'basic-input', 'index': index},
                 placeholder=f'{objname.capitalize()} ID (optional)')
@@ -39,29 +39,13 @@ def toggle_dialogue(n_open, n_close, is_open):
     return is_open
 
 @callback(
-    Output({'type': 'cultivar_select', 'index': MATCH}, "options"),
-    Input({'type': 'cultivar_select', 'index': MATCH}, "search_value"),
-    Input({'type': 'cultivar_select', 'index': MATCH}, "value"),
-)
-def update_cultivar_options(search_value, input_value):
-    if not search_value:
-        search_value = ''
-    stmt = select(Cultivar.name, Cultivar.category).where(
-        Cultivar.name.ilike(f'%{search_value}%')
-    ).distinct().order_by(Cultivar.name)
-    with Session.begin() as session:
-        result = session.execute(stmt)
-    return [{'label': f"{name} ({cat})", 'value': f"{name}|{cat}"} \
-        for name, cat in result]
-
-@callback(
-    Output({'type': 'cultivar_select', 'index': MATCH}, 'value'),
+    Output({'type': 'cultivar-select', 'index': MATCH}, 'value'),
     Output({'type': 'basic-input', 'index': MATCH}, 'value'),
     Output({'type': 'save-redirect', 'index': MATCH}, 'href'),
     Input({'type': 'save-dialogue', 'index': MATCH}, 'n_clicks'),
     State({'type': 'save-dialogue', 'index': MATCH}, 'id'),
     State({'type': 'basic-input', 'index': MATCH}, 'value'),
-    State({'type': 'cultivar_select', 'index': MATCH}, 'value'),
+    State({'type': 'cultivar-select', 'index': MATCH}, 'value'),
     prevent_initial_call=True,
 )
 def save_changes(n_clicks, index, obj_id, cultivar):

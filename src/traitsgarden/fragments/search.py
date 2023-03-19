@@ -1,6 +1,6 @@
 from sqlalchemy import select
 from dash import dcc, html, callback, ctx, register_page
-from dash.dependencies import Input, Output, State
+from dash.dependencies import Input, Output, State, MATCH
 from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
 from traitsgarden.db.connect import Session
@@ -8,7 +8,7 @@ from traitsgarden.db.models import Plant, Seeds, Cultivar
 from traitsgarden.db.query import query_orm
 
 search_bar = dbc.Row([
-    dbc.Col(dcc.Dropdown(id="cultivar-dropdown", placeholder="Cultivar",), width=3),
+    dbc.Col(dcc.Dropdown(id={'type': 'cultivar-select', 'index': 'search'}, placeholder="Cultivar",), width=3),
     dbc.Col(dcc.Dropdown(id="seedsid-dropdown", placeholder="Seeds ID",), width=3),
     dbc.Col(dcc.Dropdown(id="plantid-dropdown", placeholder="Plant ID",), width=3),
     dbc.Col(dcc.Link(
@@ -22,7 +22,7 @@ search_bar = dbc.Row([
 )
 
 search_col = dbc.Row([
-    dbc.Col(dcc.Dropdown(id="cultivar-dropdown", placeholder="Cultivar",), width=12),
+    dbc.Col(dcc.Dropdown(id={'type': 'cultivar-select', 'index': 'search'}, placeholder="Cultivar",), width=12),
     dbc.Col(dcc.Dropdown(id="seedsid-dropdown", placeholder="Seeds ID",), width=12),
     dbc.Col(dcc.Dropdown(id="plantid-dropdown", placeholder="Plant ID",), width=12),
     dbc.Col(dcc.Link(
@@ -36,26 +36,25 @@ search_col = dbc.Row([
 )
 
 @callback(
-    Output("cultivar-dropdown", "options"),
-    Input("cultivar-dropdown", "search_value"),
+    Output({'type': 'cultivar-select', 'index': MATCH}, "options"),
+    Input({'type': 'cultivar-select', 'index': MATCH}, "search_value"),
+    Input({'type': 'cultivar-select', 'index': MATCH}, "value"),
 )
-def update_cultivar(search_value):
+def update_cultivar_options(search_value, input_value):
     if not search_value:
         search_value = ''
-    stmt = select(Cultivar).where(
-        Cultivar.name.ilike(f'%{search_value}%') |\
-        Cultivar.category.ilike(f'%{search_value}%')
-    )
+    stmt = select(Cultivar.name, Cultivar.category).where(
+        Cultivar.name.ilike(f'%{search_value}%')
+    ).distinct().order_by(Cultivar.name)
     with Session.begin() as session:
-        result = query_orm(session, stmt)
-        cultivars = {
-            f"{obj.category} | {obj.name}": f"{obj.name} ({obj.category})" for obj in result}
-    return cultivars
+        result = session.execute(stmt)
+    return [{'label': f"{name} ({cat})", 'value': f"{name}|{cat}"} \
+        for name, cat in result]
 
 @callback(
     Output("seedsid-dropdown", "options"),
     Input("seedsid-dropdown", "search_value"),
-    Input("cultivar-dropdown", "value"),
+    Input({'type': 'cultivar-select', 'index': 'search'}, "value"),
 )
 def update_seedsid(search_value, cultivar):
     return update_search_ids(search_value, cultivar, Seeds)
@@ -63,7 +62,7 @@ def update_seedsid(search_value, cultivar):
 @callback(
     Output("plantid-dropdown", "options"),
     Input("plantid-dropdown", "search_value"),
-    Input("cultivar-dropdown", "value"),
+    Input({'type': 'cultivar-select', 'index': 'search'}, "value"),
 )
 def update_plantid(search_value, cultivar):
     return update_search_ids(search_value, cultivar, Plant)
@@ -109,7 +108,7 @@ def seedsid_plantid_exclusive(seedsid, plantid):
 
 @callback(
     Output('dd-output-container', 'children'),
-    Input('cultivar-dropdown', 'value'),
+    Input({'type': 'cultivar-select', 'index': 'search'}, 'value'),
     Input('seedsid-dropdown', 'value'),
     Input('plantid-dropdown', 'value'),
 )
@@ -119,7 +118,7 @@ def update_output(cultivar, seedsid, plantid):
 
 @callback(
     Output('search-link', 'href'),
-    Input('cultivar-dropdown', 'value'),
+    Input({'type': 'cultivar-select', 'index': 'search'}, 'value'),
     Input('seedsid-dropdown', 'value'),
     Input('plantid-dropdown', 'value'),
 )
@@ -141,7 +140,7 @@ def search_go(cultivar, seedsid, plantid):
 
 def parse_cultivar(label):
     try:
-        category, name = label.split(' | ')
+        name, category = label.split('|')
     except AttributeError:
         category = name = None
     return category, name

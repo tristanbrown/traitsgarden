@@ -9,7 +9,7 @@ from traitsgarden.db.query import query_orm
 from traitsgarden.fragments.search import update_search_ids
 
 def display_dropdown_ids(category, name, model, current_id):
-    cultivar = f"{category} | {name}"
+    cultivar = f"{name}|{category}"
     search_ids = update_search_ids(None, cultivar, model)
     return html.Div([
         dcc.Dropdown(id="ids-dropdown", value=current_id, options=search_ids,
