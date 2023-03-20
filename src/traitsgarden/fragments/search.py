@@ -1,5 +1,5 @@
 from sqlalchemy import select
-from dash import dcc, html, callback, ctx, register_page
+from dash import dcc, html, callback, ctx
 from dash.dependencies import Input, Output, State, MATCH
 from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc

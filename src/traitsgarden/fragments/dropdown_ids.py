@@ -1,11 +1,10 @@
 from sqlalchemy import select
-from dash import dcc, html, callback, ctx, register_page, no_update
+from dash import dcc, html, callback, ctx
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
 from traitsgarden.db.connect import Session
 from traitsgarden.db.models import Plant, Seeds, Cultivar
-from traitsgarden.db.query import query_orm
 from traitsgarden.fragments.search import update_search_ids
 
 def display_dropdown_ids(category, name, model, current_id):

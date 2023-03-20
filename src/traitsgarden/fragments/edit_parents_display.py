@@ -4,8 +4,6 @@ from dash.dependencies import Input, Output, State, MATCH, ALL
 import dash_bootstrap_components as dbc
 from traitsgarden.db.connect import Session
 from traitsgarden.db.models import Plant, Seeds, Cultivar
-from traitsgarden.db.query import query_orm
-from traitsgarden.fragments.shared import dropdown_options_input
 
 def edit_parents_modal(name, category, pkt_id):
     index = f"edit-parents"

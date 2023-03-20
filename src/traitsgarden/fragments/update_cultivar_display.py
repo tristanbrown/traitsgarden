@@ -1,10 +1,9 @@
 from sqlalchemy import select
-from dash import dcc, html, callback, register_page
+from dash import dcc, html, callback
 from dash.dependencies import Input, Output, State, MATCH, ALL
 import dash_bootstrap_components as dbc
 from traitsgarden.db.connect import Session
 from traitsgarden.db.models import Plant, Seeds, Cultivar
-from traitsgarden.db.query import query_orm
 from traitsgarden.fragments.shared import dropdown_options_input
 
 def cultivar_update_display(obj_id=None):

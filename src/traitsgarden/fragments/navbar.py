@@ -1,4 +1,4 @@
-from dash import dcc, html, callback, register_page
+from dash import dcc, html, callback
 from dash.dependencies import Input, Output, State, MATCH, ALL
 import dash_bootstrap_components as dbc
 from traitsgarden.fragments.search import search_bar, search_col
