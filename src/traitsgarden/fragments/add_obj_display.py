@@ -1,5 +1,5 @@
 from sqlalchemy import select
-from dash import dcc, html, callback, callback_context
+from dash import dcc, html, callback, ctx
 from dash.dependencies import Input, Output, State, MATCH, ALL
 import dash_bootstrap_components as dbc
 from traitsgarden.db.connect import Session
@@ -24,17 +24,6 @@ def add_display_modal(objname, name=None, category=None):
                 dbc.Button("Save", id={'type': 'save-dialogue', 'index': index}),
                 ])
     ], id={'type': 'dialogue', 'index': index})
-
-@callback(
-    Output({'type': 'dialogue', 'index': MATCH}, "is_open"),
-    [Input({'type': 'open-dialogue', 'index': MATCH}, "n_clicks"),
-    Input({'type': 'save-dialogue', 'index': MATCH}, "n_clicks")],
-    [State({'type': 'dialogue', 'index': MATCH}, "is_open")],
-)
-def toggle_dialogue(n_open, n_close, is_open):
-    if n_open or n_close:
-        return not is_open
-    return is_open
 
 def get_objsave_inputs(index):
     return [

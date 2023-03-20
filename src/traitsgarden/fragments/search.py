@@ -36,22 +36,6 @@ search_col = dbc.Row([
 )
 
 @callback(
-    Output({'type': 'cultivar-select', 'index': MATCH}, "options"),
-    Input({'type': 'cultivar-select', 'index': MATCH}, "search_value"),
-    Input({'type': 'cultivar-select', 'index': MATCH}, "value"),
-)
-def update_cultivar_options(search_value, input_value):
-    if not search_value:
-        search_value = ''
-    stmt = select(Cultivar.name, Cultivar.category).where(
-        Cultivar.name.ilike(f'%{search_value}%')
-    ).distinct().order_by(Cultivar.name)
-    with Session.begin() as session:
-        result = session.execute(stmt)
-    return [{'label': f"{name} ({cat})", 'value': f"{name}|{cat}"} \
-        for name, cat in result]
-
-@callback(
     Output("seedsid-dropdown", "options"),
     Input("seedsid-dropdown", "search_value"),
     Input({'type': 'cultivar-select', 'index': 'search'}, "value"),

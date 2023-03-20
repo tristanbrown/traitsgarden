@@ -4,7 +4,6 @@ from dash.dependencies import Input, Output, State, MATCH, ALL
 import dash_bootstrap_components as dbc
 from traitsgarden.db.connect import Session
 from traitsgarden.db.models import Plant, Seeds, Cultivar
-from traitsgarden.fragments.shared import dropdown_options_input
 
 def cultivar_update_display(obj_id=None):
     if obj_id is None:
@@ -32,20 +31,6 @@ def cultivar_update_display(obj_id=None):
                 dbc.Button("Save", id={'type': 'save-dialogue', 'index': index}),
                 ])
     ], id={'type': 'dialogue', 'index': index})
-
-@callback(
-    Output({'type': 'category-dropdown', 'index': MATCH}, "options"),
-    Input({'type': 'category-dropdown', 'index': MATCH}, "search_value"),
-    Input({'type': 'category-dropdown', 'index': MATCH}, "value"),
-)
-@dropdown_options_input
-def update_category_options(search_value, input_value):
-    stmt = select(Cultivar.category).where(
-        Cultivar.category.ilike(f'%{search_value}%')
-    ).distinct().order_by(Cultivar.category)
-    with Session.begin() as session:
-        result = session.execute(stmt).scalars().all()
-    return result
 
 def get_cultivarsave_inputs(index):
     return [
