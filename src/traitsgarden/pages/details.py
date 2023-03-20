@@ -25,47 +25,56 @@ def layout(cultivarid=None, seedsid=None, plantid=None):
         html.Br(),
         dbc.Row([
             dbc.Col(dbc.Button('Save Changes', id='save-changes', n_clicks=0), width='auto'),
-            dbc.Col(dbc.Button('Delete', id='delete-entity-open', n_clicks=0), width='auto')
+            dbc.Col(dbc.Button('Delete',
+                id={'type': 'open-dialogue', 'index': f'delete-{display.active_model}'},
+                n_clicks=0), width='auto')
         ],
         align='center',
         justify="start"
         ),
         html.Div(id='save-status', children='-'),
-        del_display,
+        del_display(display.active_model),
     ])
 
 class DetailsDisplay():
     """"""
 
     def __init__(self, cultivarid, seedsid, plantid):
-        self.cultivarid = cultivarid
-        self.seedsid = seedsid
-        self.plantid = plantid
+        self.ids = {
+            'cultivar': cultivarid,
+            'seeds': seedsid,
+            'plant': plantid
+        }
         self.section2 = self.get_section2()
         self.section1 = self.get_section1()
 
     @property
-    def ids(self):
-        return {
-            'cultivar': self.cultivarid,
-            'seeds': self.seedsid,
-            'plant': self.plantid,
-        }
+    def active_model(self):
+        if self.ids['seeds']:
+            return 'seeds'
+        elif self.ids['plant']:
+            return 'plant'
+        else:
+            return 'cultivar'
+
+    @property
+    def active_id(self):
+        return self.ids[self.active_model]
 
     def get_section2(self):
-        if self.plantid:
-            return self.get_obj_display(Plant, self.plantid, InputFormPlant)
-        elif self.seedsid:
-            return self.get_obj_display(Seeds, self.seedsid, InputFormSeeds)
+        if self.active_model == 'plant':
+            return self.get_obj_display(Plant, self.active_id, InputFormPlant)
+        elif self.active_model == 'seeds':
+            return self.get_obj_display(Seeds, self.active_id, InputFormSeeds)
 
     def get_section1(self):
-        return self.get_obj_display(Cultivar, self.cultivarid, InputFormCultivar)
+        return self.get_obj_display(Cultivar, self.ids['cultivar'], InputFormCultivar)
 
     def get_obj_display(self, model, obj_id, display_class):
         with Session.begin() as session:
             obj = model.get(session, obj_id)
             try:
-                self.cultivarid = obj.cultivar.id
+                self.ids['cultivar'] = obj.cultivar.id
             except AttributeError:
                 pass
             return display_class(obj).layout
@@ -127,19 +136,6 @@ class InputFormCultivar(InputForm):
     def get_layout(self, obj):
         layout = html.Div([
             dbc.Row([
-                dbc.Col([
-                    dbc.Button('Add Cultivar',
-                        id={'type': 'open-dialogue', 'index': 'add-cultivar'}, n_clicks=0),
-                    cultivar_update_display()
-                ], width='auto'),
-                dbc.Col([
-                    dbc.Button('Delete Cultivar', id='delete-cultivar-open', n_clicks=0),
-                ])
-                ],
-                align='center',
-                justify="start"
-            ),
-            dbc.Row([
                 dbc.Col(html.H2(obj.name), width='auto'),
                 dbc.Col([
                     dbc.Button('Rename',
@@ -162,6 +158,11 @@ class InputFormCultivar(InputForm):
             self.text_box('description'),
             html.Br(),
             dbc.Row([
+                dbc.Col([
+                    dbc.Button('Add Cultivar',
+                        id={'type': 'open-dialogue', 'index': 'add-cultivar'}, n_clicks=0),
+                    cultivar_update_display()
+                ], width='auto'),
                 dbc.Col([
                     dbc.Button('Add Seeds',
                         id={'type': 'open-dialogue', 'index': "add-seeds"},

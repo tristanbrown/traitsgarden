@@ -12,7 +12,7 @@ def add_display_modal(objname, name=None, category=None):
     else:
         cultivar = None
     return dbc.Modal([
-        dbc.ModalHeader(dbc.ModalTitle(f"Add {objname.capitalize()}", id='dialogue-title')),
+        dbc.ModalHeader(dbc.ModalTitle(f"Add {objname.capitalize()}")),
         dbc.ModalBody([
             dcc.Dropdown(id={'type': 'cultivar-select', 'index': index},
                 placeholder="Cultivar", value=cultivar),
