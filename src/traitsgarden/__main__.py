@@ -3,7 +3,7 @@ import os
 import argparse
 from traitsgarden import app
 
-parser = argparse.ArgumentParser(description='Process some integers.')
+parser = argparse.ArgumentParser(description='Set the app startup mode.')
 parser.add_argument('-t', '--test', action='store_true')
 args = parser.parse_args()
 if args.test:
