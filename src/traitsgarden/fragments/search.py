@@ -1,3 +1,4 @@
+import json
 from sqlalchemy import select
 from dash import dcc, html, callback, ctx
 from dash.dependencies import Input, Output, State, MATCH
@@ -9,8 +10,8 @@ from traitsgarden.db.query import query_orm
 
 search_bar = dbc.Row([
     dbc.Col(dcc.Dropdown(id={'type': 'cultivar-select', 'index': 'search'}, placeholder="Cultivar",), width=3),
-    dbc.Col(dcc.Dropdown(id="seedsid-dropdown", placeholder="Seeds ID",), width=3),
-    dbc.Col(dcc.Dropdown(id="plantid-dropdown", placeholder="Plant ID",), width=3),
+    dbc.Col(dcc.Dropdown(id={'type': 'seedsid-dropdown', 'index': 'search'}, placeholder="Seeds ID",), width=3),
+    dbc.Col(dcc.Dropdown(id={'type': 'plantid-dropdown', 'index': 'search'}, placeholder="Plant ID",), width=3),
     dbc.Col(dcc.Link(
         dbc.Button('Search'),
         id='search-link',
@@ -23,8 +24,8 @@ search_bar = dbc.Row([
 
 search_col = dbc.Row([
     dbc.Col(dcc.Dropdown(id={'type': 'cultivar-select', 'index': 'search'}, placeholder="Cultivar",), width=12),
-    dbc.Col(dcc.Dropdown(id="seedsid-dropdown", placeholder="Seeds ID",), width=12),
-    dbc.Col(dcc.Dropdown(id="plantid-dropdown", placeholder="Plant ID",), width=12),
+    dbc.Col(dcc.Dropdown(id={'type': 'seedsid-dropdown', 'index': 'search'}, placeholder="Seeds ID",), width=12),
+    dbc.Col(dcc.Dropdown(id={'type': 'plantid-dropdown', 'index': 'search'}, placeholder="Plant ID",), width=12),
     dbc.Col(dcc.Link(
         dbc.Button('Search', id='search-button', n_clicks=0),
         id='search-link',
@@ -36,17 +37,17 @@ search_col = dbc.Row([
 )
 
 @callback(
-    Output("seedsid-dropdown", "options"),
-    Input("seedsid-dropdown", "search_value"),
-    Input({'type': 'cultivar-select', 'index': 'search'}, "value"),
+    Output({'type': 'seedsid-dropdown', 'index': MATCH}, "options"),
+    Input({'type': 'seedsid-dropdown', 'index': MATCH}, "search_value"),
+    Input({'type': 'cultivar-select', 'index': MATCH}, "value"),
 )
 def update_seedsid(search_value, cultivar):
     return update_search_ids(search_value, cultivar, Seeds)
 
 @callback(
-    Output("plantid-dropdown", "options"),
-    Input("plantid-dropdown", "search_value"),
-    Input({'type': 'cultivar-select', 'index': 'search'}, "value"),
+    Output({'type': 'plantid-dropdown', 'index': MATCH}, "options"),
+    Input({'type': 'plantid-dropdown', 'index': MATCH}, "search_value"),
+    Input({'type': 'cultivar-select', 'index': MATCH}, "value"),
 )
 def update_plantid(search_value, cultivar):
     return update_search_ids(search_value, cultivar, Plant)
@@ -75,26 +76,27 @@ def update_search_ids(search_value, cultivar, model):
     return sorted(list(obj_ids))
 
 @callback(
-    Output("seedsid-dropdown", "value"),
-    Output("plantid-dropdown", "value"),
-    Input("seedsid-dropdown", "value"),
-    Input("plantid-dropdown", "value"),
+    Output({'type': 'seedsid-dropdown', 'index': 'search'}, "value"),
+    Output({'type': 'plantid-dropdown', 'index': 'search'}, "value"),
+    Input({'type': 'seedsid-dropdown', 'index': 'search'}, "value"),
+    Input({'type': 'plantid-dropdown', 'index': 'search'}, "value"),
 )
 def seedsid_plantid_exclusive(seedsid, plantid):
     trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
-    if trigger_id == 'seedsid-dropdown':
-        result = (seedsid, None)
-    elif trigger_id == 'plantid-dropdown':
-        result = (None, plantid)
-    else:
+    if not trigger_id:
         raise PreventUpdate
+    trigger_label = json.loads(trigger_id)['type']
+    if trigger_label == 'seedsid-dropdown':
+        result = (seedsid, None)
+    elif trigger_label == 'plantid-dropdown':
+        result = (None, plantid)
     return result
 
 @callback(
     Output('dd-output-container', 'children'),
     Input({'type': 'cultivar-select', 'index': 'search'}, 'value'),
-    Input('seedsid-dropdown', 'value'),
-    Input('plantid-dropdown', 'value'),
+    Input({'type': 'seedsid-dropdown', 'index': 'search'}, 'value'),
+    Input({'type': 'plantid-dropdown', 'index': 'search'}, 'value'),
 )
 def update_output(cultivar, seedsid, plantid):
     category, name = parse_cultivar(cultivar)
@@ -103,8 +105,8 @@ def update_output(cultivar, seedsid, plantid):
 @callback(
     Output('search-link', 'href'),
     Input({'type': 'cultivar-select', 'index': 'search'}, 'value'),
-    Input('seedsid-dropdown', 'value'),
-    Input('plantid-dropdown', 'value'),
+    Input({'type': 'seedsid-dropdown', 'index': 'search'}, 'value'),
+    Input({'type': 'plantid-dropdown', 'index': 'search'}, 'value'),
 )
 def search_go(cultivar, seedsid, plantid):
     category, name = parse_cultivar(cultivar)
