@@ -5,6 +5,7 @@ import dash_bootstrap_components as dbc
 from traitsgarden.db.connect import Session
 from traitsgarden.db.models import Plant, Seeds, Cultivar
 
+
 def edit_parents_modal(name, category, pkt_id):
     index = f"edit-parents"
     if name and category:
@@ -27,6 +28,7 @@ def edit_parents_modal(name, category, pkt_id):
                 ])
     ], id={'type': 'dialogue', 'index': index})
 
+
 def init_parents_store(seeds_id):
     """Get the parents data from the database and Store it."""
     with Session.begin() as session:
@@ -39,6 +41,7 @@ def init_parents_store(seeds_id):
             for label, parent_group in parent_objs.items()
         }
     return parent_names
+
 
 @callback(
     Output('seedparent-store', 'data'),
@@ -60,8 +63,11 @@ def update_seedparent_store(
         ids,
         parent_names
         ):
+    """Updates the temporary Store of seed parents data."""
+
     button_id = ctx.triggered_id
     any_clicks = any(ctx.inputs.values())
+
     if button_id['type'] == 'open-dialogue':
         parent_names = init_parents_store(ids['seeds'])
     elif button_id['type'] == 'delete-parent' and any_clicks:
@@ -74,6 +80,7 @@ def update_seedparent_store(
             parent = Plant.query(session, name, category, plant_id)
             parent_names[parent_type][parent.id] = parent.__repr__()
     return parent_names
+
 
 @callback(
     Output({'type': 'dialogue-body', 'index': "edit-parents"}, 'children'),
