@@ -44,19 +44,35 @@ def init_parents_store(seeds_id):
     Output('seedparent-store', 'data'),
     Input({'type': 'open-dialogue', 'index': 'edit-parents'}, 'n_clicks'),
     Input({'type': 'delete-parent', 'index': ALL}, 'n_clicks'),
+    Input({'type': 'add-parent', 'index': ALL}, 'n_clicks'),
+    State({'type': 'cultivar-select', 'index': 'edit-parents'}, "value"),
+    State({'type': 'plantid-dropdown', 'index': 'edit-parents'}, "value"),
     State('ids', 'data'),
     State('seedparent-store', 'data'),
     prevent_initial_call=True,
 )
-def update_seedparent_store(open_click, del_click, ids, parent_names):
+def update_seedparent_store(
+        open_click,
+        del_click,
+        add_click,
+        cultivar,
+        plant_id,
+        ids,
+        parent_names
+        ):
     button_id = ctx.triggered_id
-    print(button_id)
     any_clicks = any(ctx.inputs.values())
     if button_id['type'] == 'open-dialogue':
         parent_names = init_parents_store(ids['seeds'])
     elif button_id['type'] == 'delete-parent' and any_clicks:
-        del_parent_type, del_parent_id = button_id['index'].split('=')
-        parent_names[del_parent_type].pop(del_parent_id, None)
+        parent_type, parent_id = button_id['index'].split('=')
+        parent_names[parent_type].pop(parent_id, None)
+    elif button_id['type'] == 'add-parent' and any_clicks:
+        parent_type = button_id['index']
+        name, category = cultivar.split("|")
+        with Session.begin() as session:
+            parent = Plant.query(session, name, category, plant_id)
+            parent_names[parent_type][parent.id] = parent.__repr__()
     return parent_names
 
 @callback(
