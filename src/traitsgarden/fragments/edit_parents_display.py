@@ -78,7 +78,14 @@ def get_parent_boxes(open_clicks, parent_names):
                 dbc.InputGroupText(name)
             ], size='sm')
             for id, name in parent_group.items()
-        ]
+        ] + [
+            dbc.InputGroup(
+                dbc.Button(
+                    "+",
+                    id={'type': 'add-parent', 'index': label},
+                    n_clicks=0),
+                size='sm')
+            ]
     deletable_parents = [
         "Mothers:",
         html.Br(),
