@@ -182,6 +182,10 @@ class Seeds(DBObjMixin, Base):
             parent_assoc = SeedParent(
                 seeds=self, plant=parent_plant, mother=mother)
             session.add(parent_assoc)
+        else:
+            parent_ids = [plant.id for plant in self.parents]
+            obj_idx = parent_ids.index(parent_plant.id)
+            self.parentage[obj_idx].mother = mother
 
     def del_parent(self, session, parent_id):
         parent_ids = [plant.id for plant in self.parents]
@@ -197,18 +201,23 @@ class Seeds(DBObjMixin, Base):
 
         parent_ids (dict): {'mothers': [id1, id2], 'fathers': [id3, id4]}
         """
-        current_parent_ids = [plant.id for plant in self.parents]
-        all_new_parent_ids = parent_ids['mothers'] + parent_ids['fathers']
-        ids_to_del = set(current_parent_ids) - set(all_new_parent_ids)
-        mothers_to_add = set(parent_ids['mothers']) - set(current_parent_ids)
-        fathers_to_add = set(parent_ids['fathers']) - set(current_parent_ids)
+        current_parents = self.get_parents(session)
+        ids_to_add = {}
+        for label in ('mothers', 'fathers'):
+            current_ids = [plant.id for plant in current_parents[label]]
+            new_ids = parent_ids[label]
+            ids_to_add[label] = set(new_ids) - set(current_ids)
 
-        for obj_id in mothers_to_add:
-            self.add_parent(session, obj_id, mother=True)
-        for obj_id in fathers_to_add:
-            self.add_parent(session, obj_id, mother=False)
-        for obj_id in ids_to_del:
-            self.del_parent(session, obj_id)
+        ## Delete first
+        for obj_id in [parent.id for parent in self.parents]:
+            if obj_id not in parent_ids['mothers'] + parent_ids['fathers']:
+                self.del_parent(session, obj_id)
+
+        ## Add new parents
+        for label in ('fathers', 'mothers'):
+            ismother = (label == 'mothers')
+            for obj_id in ids_to_add[label]:
+                self.add_parent(session, obj_id, mother=ismother)
 
     ## Additional attributes
 
