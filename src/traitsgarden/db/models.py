@@ -167,10 +167,13 @@ class Seeds(DBObjMixin, Base):
 
         Default parent is mother.
         """
-        category = self.category
-        if name is None:
-            name = self.name
-        parent_obj = Plant.query(session, name, category, plant_id)
+        if isinstance(plant_id, int):
+            parent_obj = Plant.get(session, plant_id)
+        else:
+            category = self.category
+            if name is None:
+                name = self.name
+            parent_obj = Plant.query(session, name, category, plant_id)
         self.add_parent_obj(session, parent_obj, mother)
 
     def add_parent_obj(self, session, parent_plant, mother=True):
