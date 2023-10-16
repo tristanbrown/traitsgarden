@@ -25,6 +25,7 @@ def edit_parents_modal(name, category, pkt_id):
         dbc.ModalFooter([
                 dcc.Location(id={'type': 'save-redirect', 'index': index}, refresh=True),
                 dbc.Button("Save", id={'type': 'save-dialogue', 'index': index}),
+                html.Div(id='dummy1'),
                 ])
     ], id={'type': 'dialogue', 'index': index})
 
@@ -119,3 +120,21 @@ def get_parent_boxes(open_clicks, parent_names):
         *parent_boxes['fathers'],
     ]
     return deletable_parents
+
+@callback(
+    Output("dummy1", "children"),
+    Input({'type': 'save-dialogue', 'index': "edit-parents"}, 'n_clicks'),
+    State('seedparent-store', 'data'),
+    prevent_initial_call=True,
+)
+def save_stored_parents(n_clicks, parent_names):
+    print(parent_names)
+    # name, category = cultivar.split('|')
+    # with Session.begin() as session:
+    #     obj = Seeds.add(session, name, category, obj_id)
+    #     obj_id = obj.pkt_id
+    # with Session.begin() as session:
+    #     obj = Seeds.query(session, name, category, obj_id)
+    #     if obj:
+    #         return None, None, f"details?seedsid={obj.id}"
+    # return None, None, ''

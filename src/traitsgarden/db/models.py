@@ -161,7 +161,7 @@ class Seeds(DBObjMixin, Base):
             ['id', 'cultivar_id', 'category', 'name', 'pkt_id']).reset_index()
         return df.set_index('id').sort_index()
 
-    def add_parent(self, session, plant_id, name=None, mother=True,):
+    def add_parent(self, session, plant_id, name=None, mother=True):
         """Defaults to the same name/category,
         but others can be specified for crossbreeds.
 
@@ -178,6 +178,16 @@ class Seeds(DBObjMixin, Base):
         if parent_plant not in self.parents:
             parent_assoc = SeedParent(
                 seeds=self, plant=parent_plant, mother=mother)
+            session.add(parent_assoc)
+
+    def del_parent(self, session, parent_id):
+        parent_ids = [plant.id for plant in self.parents]
+        try:
+            obj_idx = parent_ids.index(parent_id)
+        except ValueError:
+            return
+        del_obj = self.parentage[obj_idx]
+        del_obj.delete(session)
 
     ## Additional attributes
 
@@ -308,7 +318,7 @@ class Plant(DBObjMixin, Base):
         except DoesNotExist:
             return
 
-class SeedParent(Base):
+class SeedParent(Base, DBObjMixin):
     __tablename__ = 'seedparent'
 
     ## ID Fields
