@@ -192,6 +192,24 @@ class Seeds(DBObjMixin, Base):
         del_obj = self.parentage[obj_idx]
         del_obj.delete(session)
 
+    def update_parents(self, session, parent_ids):
+        """Update the parents to only be the given parent_ids.
+
+        parent_ids (dict): {'mothers': [id1, id2], 'fathers': [id3, id4]}
+        """
+        current_parent_ids = [plant.id for plant in self.parents]
+        all_new_parent_ids = parent_ids['mothers'] + parent_ids['fathers']
+        ids_to_del = set(current_parent_ids) - set(all_new_parent_ids)
+        mothers_to_add = set(parent_ids['mothers']) - set(current_parent_ids)
+        fathers_to_add = set(parent_ids['fathers']) - set(current_parent_ids)
+
+        for obj_id in mothers_to_add:
+            self.add_parent(session, obj_id, mother=True)
+        for obj_id in fathers_to_add:
+            self.add_parent(session, obj_id, mother=False)
+        for obj_id in ids_to_del:
+            self.del_parent(session, obj_id)
+
     ## Additional attributes
 
     def get_parents(self, session):
