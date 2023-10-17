@@ -15,13 +15,13 @@ def edit_parents_modal(name, category, pkt_id):
     return dbc.Modal([
         dbc.ModalHeader(dbc.ModalTitle(f"Edit Seeds Parents")),
         dcc.Store(id='seedparent-store'),
+        dbc.ModalBody(id={'type': 'dialogue-body', 'index': index}),
         dbc.ModalBody([
             dcc.Dropdown(id={'type': 'cultivar-select', 'index': index},
                 placeholder="Cultivar", value=cultivar),
             dcc.Dropdown(id={'type': 'plantid-dropdown', 'index': index},
                 placeholder="Plant ID"),
             ]),
-        dbc.ModalBody(id={'type': 'dialogue-body', 'index': index}),
         dbc.ModalFooter([
                 dcc.Location(id={'type': 'save-redirect', 'index': index}, refresh=True),
                 dbc.Button("Save", id={'type': 'save-dialogue', 'index': index}),
