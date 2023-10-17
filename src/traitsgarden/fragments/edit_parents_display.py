@@ -21,8 +21,7 @@ def edit_parents_modal(name, category, pkt_id):
             dcc.Dropdown(id={'type': 'plantid-dropdown', 'index': index},
                 placeholder="Plant ID"),
             ]),
-        dbc.ModalBody(id={'type': 'dialogue-body', 'index': 'edit-mothers'}),
-        dbc.ModalBody(id={'type': 'dialogue-body', 'index': 'edit-fathers'}),
+        dbc.ModalBody(id={'type': 'dialogue-body', 'index': index}),
         dbc.ModalFooter([
                 dcc.Location(id={'type': 'save-redirect', 'index': index}, refresh=True),
                 dbc.Button("Save", id={'type': 'save-dialogue', 'index': index}),
@@ -83,51 +82,43 @@ def update_seedparent_store(
     return parent_names
 
 
-def create_parent_boxes(label, parents_data):
+@callback(
+    Output({'type': 'dialogue-body', 'index': "edit-parents"}, 'children'),
+    Input({'type': 'open-dialogue', 'index': "edit-parents"}, 'n_clicks'),
+    Input('seedparent-store', 'data'),
+    prevent_initial_call=True,
+)
+def get_parent_boxes(open_clicks, parent_names):
     """"""
-    parent_group = parents_data[label]
-    parent_boxes = [
-        dbc.InputGroup([
-            dbc.Button(
-                "X",
-                id={'type': 'delete-parent', 'index': f"{label}={id}"},
-                n_clicks=0),
-            dbc.InputGroupText(name)
-        ], size='sm')
-        for id, name in parent_group.items()
-    ] + [
-        dbc.InputGroup(
-            dbc.Button(
-                "+",
-                id={'type': 'add-parent', 'index': label},
-                n_clicks=0),
-            size='sm')
-        ]
-    return [
-        f"{label.capitalize()}:",
+    parent_boxes = {}
+    for label, parent_group in parent_names.items():
+        parent_boxes[label] = [
+            dbc.InputGroup([
+                dbc.Button(
+                    "X",
+                    id={'type': 'delete-parent', 'index': f"{label}={id}"},
+                    n_clicks=0),
+                dbc.InputGroupText(name)
+            ], size='sm')
+            for id, name in parent_group.items()
+        ] + [
+            dbc.InputGroup(
+                dbc.Button(
+                    "+",
+                    id={'type': 'add-parent', 'index': label},
+                    n_clicks=0),
+                size='sm')
+            ]
+    deletable_parents = [
+        "Mothers:",
         html.Br(),
-        *parent_boxes,
+        *parent_boxes['mothers'],
+        html.Br(),
+        "Fathers:",
+        html.Br(),
+        *parent_boxes['fathers'],
     ]
-
-
-@callback(
-    Output({'type': 'dialogue-body', 'index': "edit-mothers"}, 'children'),
-    Input({'type': 'open-dialogue', 'index': "edit-parents"}, 'n_clicks'),
-    Input('seedparent-store', 'data'),
-    prevent_initial_call=True,
-)
-def get_mother_boxes(open_clicks, parent_names):
-    return create_parent_boxes('mothers', parent_names)
-
-@callback(
-    Output({'type': 'dialogue-body', 'index': "edit-fathers"}, 'children'),
-    Input({'type': 'open-dialogue', 'index': "edit-parents"}, 'n_clicks'),
-    Input('seedparent-store', 'data'),
-    prevent_initial_call=True,
-)
-def get_mother_boxes(open_clicks, parent_names):
-    return create_parent_boxes('fathers', parent_names)
-
+    return deletable_parents
 
 @callback(
     Output({'type': 'save-redirect', 'index': "edit-parents"}, 'href'),
