@@ -1,0 +1,4 @@
+services:
+  workspace:
+    env_file: # Environment variables used inside the jupyterlab instance.
+      - .env
