@@ -1,6 +1,8 @@
 ### docker-compose.yml ###
 ## Access the jupyterlab instance at:
-## https://${HOSTNAME}:8081/tanspaces.${COMPOSE_PROJECT_NAME}/lab
+##   https://${HOSTNAME}:8081/tanspaces.${COMPOSE_PROJECT_NAME}/lab
+## Access the workspace-hosted Flask server at:
+##   https://${HOSTNAME}:8081/${COMPOSE_PROJECT_NAME}/
 
 include:
   - ${JUPYTER_SERVICE}
